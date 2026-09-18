@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">MeterSahi?</string>
-    <string name="title_activity_main">MeterSahi?</string>
+    <string name="app_name">MeterSahi</string>
+    <string name="title_activity_main">MeterSahi</string>
     <string name="package_name">in.metersahi.app</string>
     <string name="custom_url_scheme">in.metersahi.app</string>
 </resources>
