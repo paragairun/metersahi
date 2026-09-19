@@ -133,7 +133,7 @@ describe('computeFare - flat-rate with optional FLAG_FALL (Istanbul)', () => {
     // Same Maharashtra MVD worked example used elsewhere in this file -
     // must still compute identically now that FLAG_FALL exists as a
     // possible field, since Mumbai's tariff never sets it.
-    const mumbaiTariff = { MIN_FARE: 26, MIN_KM: 1.5, RATE_PER_KM: 17.14, WAIT_RATE_PER_MIN: 1.714, NIGHT_MULTIPLIER: 1.25, LUGGAGE_PER_PIECE: 6 };
+    const mumbaiTariff = { MIN_FARE: 27, MIN_KM: 1.5, RATE_PER_KM: 18.22, WAIT_RATE_PER_MIN: 1.822, NIGHT_MULTIPLIER: 1.25, LUGGAGE_PER_PIECE: 6 };
     expect(sandbox.computeFare(2.4, 0, false, 0, mumbaiTariff).subtotal).toBe(41);
   });
 
