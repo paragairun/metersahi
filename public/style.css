@@ -835,3 +835,73 @@ img, svg, table, .panel, .container { max-width: 100%; }
   .feedback-star { font-size: 26px; }
   .feedback-star .ti { font-size: 26px; }
 }
+
+
+/* App Announcement Banner */
+.app-banner {
+  background: linear-gradient(90deg, #111827 0%, #1f2937 100%);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 0;
+  font-size: 0.875rem;
+}
+
+.app-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.app-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-banner-badge {
+  background-color: #f59e0b; /* Amber theme color */
+  color: #000000;
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.app-banner-text {
+  font-weight: 500;
+  color: #e5e7eb;
+}
+
+.app-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.app-banner-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .app-banner-inner {
+    justify-content: center;
+    text-align: center;
+  }
+  .app-banner-text {
+    font-size: 0.8rem;
+  }
+}
