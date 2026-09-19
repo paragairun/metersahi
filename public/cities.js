@@ -31,12 +31,12 @@ const CITIES = {
     currencySymbol: '₹',
     mapCenter:    { lat: 19.0760, lng: 72.8777 },
     acBounds:     { sw: { lat: 18.85, lng: 72.75 }, ne: { lat: 19.32, lng: 73.05 } },
-    tariffDate:   '1 Feb 2025',
+    tariffDate:   '1 Sep 2026',
     tariff: {
-      MIN_FARE:          26,
+      MIN_FARE:          27,
       MIN_KM:            1.5,
-      RATE_PER_KM:       17.14,
-      WAIT_RATE_PER_MIN: 1.714,
+      RATE_PER_KM:       18.22,
+      WAIT_RATE_PER_MIN: 1.822,
       NIGHT_MULTIPLIER:  1.25,
       NIGHT_START:       0,    // 12 AM
       NIGHT_END:         5,    // 5 AM
@@ -49,12 +49,12 @@ const CITIES = {
     // (Black Yellow Taxi Tariff Card PDF). Non-AC only for now —
     // AC taxi is +10% per the same tariff card but not yet wired
     // into the calculator.
-    taxiTariffDate: '1 Feb 2025',
+    taxiTariffDate: '1 Sep 2026',
     taxiTariff: {
-      MIN_FARE:          31,
+      MIN_FARE:          33,
       MIN_KM:            1.5,
-      RATE_PER_KM:       20.66,
-      WAIT_RATE_PER_MIN: 2.066,  // 10% of per-km rate, per tariff card note
+      RATE_PER_KM:       21.90,
+      WAIT_RATE_PER_MIN: 2.190,  // 10% of per-km rate, per tariff card note
       NIGHT_MULTIPLIER:  1.25,
       NIGHT_START:       0,
       NIGHT_END:         5,
