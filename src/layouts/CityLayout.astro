@@ -274,6 +274,10 @@ const faqJsonLd = {
           </div>
         </a>
         <div class="header-right">
+          <a href="/account/" class="acc-header-btn" id="acc-header-btn" aria-label="My account">
+            <i class="ti ti-user-circle"></i>
+            <span class="acc-header-label" id="acc-header-label">Sign in</span>
+          </a>
           <div class="tariff-badge">
             <i class="ti ti-file-certificate"></i>
             {city.state} tariff · {city.tariffDate}
@@ -704,6 +708,7 @@ const faqJsonLd = {
   <script is:inline set:html={`window.CITY_SLUG = ${JSON.stringify(city.slug)}; var CITY_SLUG = window.CITY_SLUG;`}></script>
   <script is:inline src="/cities.js"></script>
   <script is:inline src="/ride-compare.js"></script>
+  <script is:inline src="/auth.js"></script>
   <script is:inline src="/app.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC--1rhnaUVZOO8eiq11EAiB3nEZhMvdhM&libraries=places,geometry&callback=initMap" async defer onerror="handleMapError()"></script>
 
