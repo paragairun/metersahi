@@ -56,6 +56,12 @@ window.setVehicleType = function (type) {
     btn.classList.toggle('active', btn.dataset.vehicle === type);
   });
 
+  // Swap every tariff-dependent block on the page (tariff preview card,
+  // fare chart, FAQ answers) to the selected vehicle. Without this the
+  // toggle changed only the calculated fare while the rest of the page
+  // kept showing auto rickshaw rates. See .vt-pane rules in style.css.
+  document.documentElement.setAttribute('data-vehicle', type);
+
   autoSetRideTime();
   // Fare depends on the selected vehicle's tariff, so any previously
   // shown result is now stale - ask for a fresh Calculate rather than
@@ -788,7 +794,13 @@ function setLoading(on) {
 }
 
 function hideResults() {
-  document.getElementById('empty-state').style.display    = 'block';
+  // Clear the inline display instead of setting 'block'. The stylesheet
+  // rule is `.empty-state { display:flex; ... align-items:center; }`, so
+  // an inline `display:block` beat it and the tariff summary card jumped
+  // out of its centred position the first time anything hid the results
+  // (switching the Auto/Taxi toggle, for one). Removing the inline value
+  // hands control back to the stylesheet and the card stays put.
+  document.getElementById('empty-state').style.removeProperty('display');
   document.getElementById('result-content').style.display = 'none';
 }
 

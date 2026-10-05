@@ -182,6 +182,15 @@ input, select { font-family: var(--font-ui); }
 
 /* Vehicle type toggle (Auto/Taxi) */
 .vehicle-toggle { display:flex; gap:6px; margin:0 20px 4px; padding:4px; background:var(--surface-3); border-radius:var(--radius-md); }
+
+/* ── Vehicle-type panes (Auto / Taxi) ──
+   Every tariff-dependent block is rendered once per vehicle and tagged
+   .vt-pane--auto / .vt-pane--taxi. setVehicleType() in app.js sets
+   data-vehicle on <html>; these rules show only the matching pane.
+   The server renders without the attribute, so the auto pane is what
+   crawlers and no-JS visitors see - unchanged from before. */
+:root:not([data-vehicle="taxi"]) .vt-pane--taxi { display:none !important; }
+[data-vehicle="taxi"] .vt-pane--auto { display:none !important; }
 .vt-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 12px; border:none; border-radius:calc(var(--radius-md) - 2px); background:transparent; color:var(--text-secondary); font-size:13px; font-weight:600; cursor:pointer; transition:background 0.15s,color 0.15s; }
 .vt-btn:hover { color:var(--text-primary); }
 .vt-btn.active { background:var(--surface); color:var(--saffron-dk); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
