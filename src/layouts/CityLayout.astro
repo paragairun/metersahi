@@ -92,6 +92,60 @@ const rateHeadline = isBanded
   ? `From ${currency}${bands[bands.length - 1].perKm}/km (tiered by distance)`
   : `${currency}${perKmDisplay}/km`;
 
+/* ── Per-vehicle view models ──
+   Every tariff-derived figure on the page used to be computed once from
+   city.tariff, so switching the Auto/Taxi toggle changed only the
+   calculator's own result - the tariff card, fare chart and FAQ kept
+   showing auto rates. buildTariffView() produces one view per vehicle,
+   and the markup renders a pane for each; CSS shows whichever matches
+   the current data-vehicle attribute (set by setVehicleType in app.js).
+
+   The server still renders the auto pane first and un-hidden, so the
+   no-JS and crawler view is byte-for-byte what it was before. Page
+   metadata (title, JSON-LD, canonical) is deliberately left auto-primary:
+   it cannot vary with a client-side toggle. */
+function buildTariffView(
+  tf: Tariff,
+  tariffDate: string,
+  key: 'auto' | 'taxi',
+  meterLabel: string,
+  shortLabel: string,
+) {
+  const vTiered      = !!tf.BANDS;
+  const vProgressive = !!(tf as any).PROGRESSIVE_BANDS;
+  const vBanded      = vTiered || vProgressive;
+  const vBands       = vTiered ? tf.BANDS! : (vProgressive ? (tf as any).PROGRESSIVE_BANDS : []);
+  const vMinFareRaw  = vBanded ? (vBands[0].flatFare ?? vBands[0].perKm) : tf.MIN_FARE;
+  const vNightPct    = Math.round((tf.NIGHT_MULTIPLIER - 1) * 100);
+  return {
+    key,
+    meterLabel,
+    shortLabel,
+    tariff: tf,
+    tariffDate,
+    isBanded: vBanded,
+    isProgressive: vProgressive,
+    bands: vBands,
+    minFareDisplay: fmtAmount(vMinFareRaw as number),
+    perKmDisplay: vBanded
+      ? vBands[vBands.length - 1].perKm!.toFixed(2)
+      : tf.RATE_PER_KM!.toFixed(2),
+    waitDisplay: tf.WAIT_RATE_PER_MIN.toFixed(2),
+    nightPct: vNightPct,
+    hasNightSurcharge: tf.NIGHT_MULTIPLIER > 1,
+    nightWindow: `${to12Hour(tf.NIGHT_START)} \u2013 ${to12Hour(tf.NIGHT_END)}`,
+  };
+}
+
+const autoView = buildTariffView(
+  T, city.tariffDate, 'auto',
+  isTaxiPrimary ? 'Taxi' : 'Auto',
+  isTaxiPrimary ? 'taxi' : 'auto',
+);
+const vehicleViews = hasTaxi
+  ? [autoView, buildTariffView(city.taxiTariff!, city.taxiTariffDate || city.tariffDate, 'taxi', 'Taxi', 'taxi')]
+  : [autoView];
+
 const title = `${city.name} ${vehicleLabel} Fare Calculator — Check Meter Tampering | MeterSahi?`;
 const ogTitle = `${city.name} ${vehicleMeterLabel} Fare Calculator — Is Your Meter Tampered? | MeterSahi?`;
 const description = "Google maps based fare calculator. Enter your route, AI calculates distance and waiting time. Instantly displays correct fare as per official tariff.";
@@ -372,17 +426,19 @@ const faqJsonLd = {
         <div class="empty-icon">🗺️</div>
         <p class="empty-title">Your route will appear here</p>
         <p class="empty-body">Enter pickup and drop-off, then hit Calculate to see the map and correct fare.</p>
-        <div class="fare-card-preview">
-          <p class="fare-card-title">{city.name} {vehicleLabelShort} tariff — {city.tariffDate}</p>
+        {vehicleViews.map(v => (
+        <div class={`fare-card-preview vt-pane vt-pane--${v.key}`} data-vehicle-pane={v.key}>
+          <p class="fare-card-title">{city.name} {v.shortLabel} tariff — {v.tariffDate}</p>
           <div class="fare-card-grid">
-            <div class="fare-card-item"><span class="fc-label">{isBanded ? 'Starts at' : 'Min. fare'}</span><span class="fc-value">{currency}{minFareDisplay}</span></div>
-            <div class="fare-card-item"><span class="fc-label">Per km</span><span class="fc-value">{currency}{perKmDisplay}</span></div>
-            <div class="fare-card-item"><span class="fc-label">Wait/min</span><span class="fc-value">{currency}{waitDisplay}</span></div>
-            {hasNightSurcharge
-              ? <div class="fare-card-item"><span class="fc-label">Night +</span><span class="fc-value">{nightPct}%</span></div>
-              : <div class="fare-card-item"><span class="fc-label">Tolerance</span><span class="fc-value">±{currency}{T.TOLERANCE}</span></div>}
+            <div class="fare-card-item"><span class="fc-label">{v.isBanded ? 'Starts at' : 'Min. fare'}</span><span class="fc-value">{currency}{v.minFareDisplay}</span></div>
+            <div class="fare-card-item"><span class="fc-label">Per km</span><span class="fc-value">{currency}{v.perKmDisplay}</span></div>
+            <div class="fare-card-item"><span class="fc-label">Wait/min</span><span class="fc-value">{currency}{v.waitDisplay}</span></div>
+            {v.hasNightSurcharge
+              ? <div class="fare-card-item"><span class="fc-label">Night +</span><span class="fc-value">{v.nightPct}%</span></div>
+              : <div class="fare-card-item"><span class="fc-label">Tolerance</span><span class="fc-value">±{currency}{v.tariff.TOLERANCE}</span></div>}
           </div>
         </div>
+        ))}
       </div>
 
       <div id="result-content" class="result-content" style="display:none">
@@ -488,45 +544,49 @@ const faqJsonLd = {
   <!-- TARIFF TABLE -->
   <section class="tariff-section" id="tariff">
     <div class="container" data-nosnippet>
-      <h2 class="section-heading">{city.name} {vehicleMeterLabel} Fare Chart {city.tariffDate}</h2>
-      <p class="section-sub">Official rates as per {regulatorName} — <strong>{city.tariffDate}</strong></p>
+      {vehicleViews.map(v => (
+      <div class={`vt-pane vt-pane--${v.key}`} data-vehicle-pane={v.key}>
+      <h2 class="section-heading">{city.name} {v.meterLabel} Fare Chart {v.tariffDate}</h2>
+      <p class="section-sub">Official rates as per {regulatorName} — <strong>{v.tariffDate}</strong></p>
       <div class="tariff-table-wrap">
         <table class="tariff-table">
           <thead><tr><th>Component</th><th>Rate</th><th>Notes</th></tr></thead>
           <tbody>
-            {isBanded ? (
-              bands.map((band, i) => {
-                const prevUpTo = i === 0 ? 0 : bands[i - 1].upTo;
+            {v.isBanded ? (
+              v.bands.map((band: any, i: number) => {
+                const prevUpTo = i === 0 ? 0 : v.bands[i - 1].upTo;
                 const range = band.upTo >= 99999 ? `${prevUpTo} km+` : `${prevUpTo} - ${band.upTo} km`;
                 const rate = band.flatFare !== undefined ? `${currency}${band.flatFare} flat` : `${currency}${band.perKm} / km`;
                 const note = band.flatFare !== undefined
                   ? 'Flat fare for this range'
-                  : (isProgressive ? 'Applies only to this portion of the trip' : 'Applied to full trip distance');
+                  : (v.isProgressive ? 'Applies only to this portion of the trip' : 'Applied to full trip distance');
                 return <tr><td>Distance {range}</td><td>{rate}</td><td>{note}</td></tr>;
               })
             ) : (
               <>
-                {T.FLAG_FALL ? (
+                {v.tariff.FLAG_FALL ? (
                   <>
-                    <tr><td>Flag-fall</td><td>{currency}{fmtAmount(T.FLAG_FALL)}</td><td>Fixed charge per trip</td></tr>
-                    <tr><td>Per km rate</td><td>{currency}{perKmDisplay} / km</td><td>Applied to full distance</td></tr>
-                    <tr><td>Minimum fare</td><td>{currency}{fmtAmount(T.MIN_FARE)}</td><td>Floor for short trips</td></tr>
+                    <tr><td>Flag-fall</td><td>{currency}{fmtAmount(v.tariff.FLAG_FALL)}</td><td>Fixed charge per trip</td></tr>
+                    <tr><td>Per km rate</td><td>{currency}{v.perKmDisplay} / km</td><td>Applied to full distance</td></tr>
+                    <tr><td>Minimum fare</td><td>{currency}{fmtAmount(v.tariff.MIN_FARE)}</td><td>Floor for short trips</td></tr>
                   </>
                 ) : (
                   <>
-                    <tr><td>Minimum fare</td><td>{currency}{T.MIN_FARE}</td><td>First {T.MIN_KM} km</td></tr>
-                    <tr><td>Per km rate</td><td>{currency}{perKmDisplay} / km</td><td>Beyond {T.MIN_KM} km</td></tr>
+                    <tr><td>Minimum fare</td><td>{currency}{v.tariff.MIN_FARE}</td><td>First {v.tariff.MIN_KM} km</td></tr>
+                    <tr><td>Per km rate</td><td>{currency}{v.perKmDisplay} / km</td><td>Beyond {v.tariff.MIN_KM} km</td></tr>
                   </>
                 )}
               </>
             )}
-            <tr><td>Waiting charge</td><td>{currency}{waitDisplay} / min</td><td>Vehicle stationary</td></tr>
-            {hasNightSurcharge && <tr><td>Night surcharge</td><td>+{nightPct}%</td><td>{nightWindow}</td></tr>}
-            <tr><td>Luggage</td><td>{currency}{T.LUGGAGE_PER_PIECE}/piece</td><td>Oversized items</td></tr>
-            <tr><td>Tolerance band</td><td>±{currency}{T.TOLERANCE}</td><td>Acceptable meter rounding</td></tr>
+            <tr><td>Waiting charge</td><td>{currency}{v.waitDisplay} / min</td><td>Vehicle stationary</td></tr>
+            {v.hasNightSurcharge && <tr><td>Night surcharge</td><td>+{v.nightPct}%</td><td>{v.nightWindow}</td></tr>}
+            <tr><td>Luggage</td><td>{currency}{v.tariff.LUGGAGE_PER_PIECE}/piece</td><td>Oversized items</td></tr>
+            <tr><td>Tolerance band</td><td>±{currency}{v.tariff.TOLERANCE}</td><td>Acceptable meter rounding</td></tr>
           </tbody>
         </table>
       </div>
+      </div>
+      ))}
     </div>
   </section>
 
@@ -535,20 +595,24 @@ const faqJsonLd = {
     <div class="container">
       <h2 class="section-heading">Frequently asked questions — {city.name} {vehicleLabelShort}s</h2>
       <div class="faq-list">
+        {vehicleViews.map(v => (
+        <div class={`vt-pane vt-pane--${v.key}`} data-vehicle-pane={v.key}>
         <details class="faq-item">
-          <summary class="faq-q">What is the {city.name} {vehicleLabelShort} fare per km in {city.tariffDate}?</summary>
-          <div class="faq-a">{isBanded ? (<>The fare is <strong>tiered by distance</strong>, starting at {currency}{minFareDisplay} and dropping to <strong>{currency}{perKmDisplay}/km</strong> for longer trips, as per {regulatorName} ({city.tariffDate}). See the fare chart above for the full breakdown.</>) : (<>The rate is <strong>{currency}{perKmDisplay}/km</strong> as per {regulatorName} ({city.tariffDate}). {T.FLAG_FALL ? (<>There's a {currency}{fmtAmount(T.FLAG_FALL)} flag-fall per trip, with a {currency}{fmtAmount(T.MIN_FARE)} minimum for short trips.</>) : (<>The minimum fare is {currency}{T.MIN_FARE} for the first {T.MIN_KM} km.</>)}</>)}</div>
+          <summary class="faq-q">What is the {city.name} {v.shortLabel} fare per km in {v.tariffDate}?</summary>
+          <div class="faq-a">{v.isBanded ? (<>The fare is <strong>tiered by distance</strong>, starting at {currency}{v.minFareDisplay} and dropping to <strong>{currency}{v.perKmDisplay}/km</strong> for longer trips, as per {regulatorName} ({v.tariffDate}). See the fare chart above for the full breakdown.</>) : (<>The rate is <strong>{currency}{v.perKmDisplay}/km</strong> as per {regulatorName} ({v.tariffDate}). {v.tariff.FLAG_FALL ? (<>There's a {currency}{fmtAmount(v.tariff.FLAG_FALL)} flag-fall per trip, with a {currency}{fmtAmount(v.tariff.MIN_FARE)} minimum for short trips.</>) : (<>The minimum fare is {currency}{v.tariff.MIN_FARE} for the first {v.tariff.MIN_KM} km.</>)}</>)}</div>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">How do I know if my {city.name} {vehicleLabelShort} meter is tampered?</summary>
-          <div class="faq-a">Use MeterSahi? — enter your pickup, drop, and the fare charged. If the driver's fare exceeds the calculated correct fare by more than {currency}{T.TOLERANCE}, tampering is likely. Signs include fares that seem very high for a short distance.</div>
+          <summary class="faq-q">How do I know if my {city.name} {v.shortLabel} meter is tampered?</summary>
+          <div class="faq-a">Use MeterSahi? — enter your pickup, drop, and the fare charged. If the driver's fare exceeds the calculated correct fare by more than {currency}{v.tariff.TOLERANCE}, tampering is likely. Signs include fares that seem very high for a short distance.</div>
         </details>
-        {hasNightSurcharge && (
+        {v.hasNightSurcharge && (
         <details class="faq-item">
-          <summary class="faq-q">What is the night surcharge for {city.name} {vehicleLabelShort}s?</summary>
-          <div class="faq-a">A <strong>{nightPct}% night surcharge</strong> applies to all rides between <strong>{nightWindow}</strong>.</div>
+          <summary class="faq-q">What is the night surcharge for {city.name} {v.shortLabel}s?</summary>
+          <div class="faq-a">A <strong>{v.nightPct}% night surcharge</strong> applies to all rides between <strong>{v.nightWindow}</strong>.</div>
         </details>
         )}
+        </div>
+        ))}
         <details class="faq-item">
           <summary class="faq-q">How do I complain about a tampered {vehicleLabelShort} meter in {city.name}?</summary>
           <div class="faq-a">Call the helpline <strong>{city.helpline}</strong> or contact your nearest {regulatorShortName} office with the {vehicleLabelShort}'s number plate and trip details.</div>
