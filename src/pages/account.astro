@@ -1,0 +1,171 @@
+---
+// MeterSahi? - account.astro
+// Signed-in dashboard: profile, activity tiles, trip history, complaints
+// raised, and account deletion. Everything is rendered client-side from
+// Supabase after the session is restored, so this page stays static and
+// deploys to GitHub Pages like the rest of the site.
+//
+// Deliberately noindex: it is per-user and has nothing for a crawler.
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My account — MeterSahi?</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#1a1a1a"/>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <a href="/" class="brand">
+          <span class="brand-icon">🛺</span>
+          <div>
+            <span class="brand-name">MeterSahi?</span>
+            <span class="brand-sub">Taxi &amp; Auto Fare Checker</span>
+          </div>
+        </a>
+        <div class="header-right">
+          <a href="/" class="acc-back-link"><i class="ti ti-arrow-left"></i> Back to calculator</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container acc-main">
+
+    <!-- Loading -->
+    <div id="acc-loading" class="acc-state">
+      <div class="spinner-ring"></div>
+      <p>Loading your account…</p>
+    </div>
+
+    <!-- Signed out -->
+    <section id="acc-signed-out" class="acc-state" style="display:none">
+      <div class="acc-signin-card">
+        <div class="acc-signin-icon"><i class="ti ti-user-circle"></i></div>
+        <h1>Sign in to MeterSahi?</h1>
+        <p class="acc-sub">Keep your fare checks, track the complaints you've raised, and see how many trips you've verified.</p>
+
+        <div class="acc-oauth">
+          <button type="button" class="acc-oauth-btn acc-oauth-btn--google" id="btn-google">
+            <i class="ti ti-brand-google"></i> Continue with Google
+          </button>
+          <button type="button" class="acc-oauth-btn acc-oauth-btn--facebook" id="btn-facebook">
+            <i class="ti ti-brand-facebook"></i> Continue with Facebook
+          </button>
+        </div>
+
+        <div class="acc-divider"><span>or use your email</span></div>
+
+        <div class="acc-form">
+          <div class="acc-field" id="field-name" style="display:none">
+            <label for="acc-name">Your name</label>
+            <input id="acc-name" type="text" autocomplete="name" placeholder="Name shown on your dashboard"/>
+          </div>
+          <div class="acc-field">
+            <label for="acc-email">Email</label>
+            <input id="acc-email" type="email" autocomplete="email" placeholder="you@example.com"/>
+          </div>
+          <div class="acc-field">
+            <label for="acc-password">Password</label>
+            <input id="acc-password" type="password" autocomplete="current-password" placeholder="At least 8 characters"/>
+          </div>
+          <button type="button" class="btn-calculate acc-submit" id="btn-email-submit">Sign in</button>
+          <p class="acc-msg" id="acc-msg"></p>
+          <div class="acc-switch">
+            <button type="button" class="acc-link" id="btn-toggle-mode">New here? Create an account</button>
+            <button type="button" class="acc-link" id="btn-forgot">Forgot password?</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Signed in -->
+    <section id="acc-dashboard" style="display:none">
+
+      <div class="acc-profile">
+        <img id="acc-avatar" class="acc-avatar" alt="" style="display:none"/>
+        <div class="acc-avatar acc-avatar--fallback" id="acc-avatar-fallback"><i class="ti ti-user"></i></div>
+        <div class="acc-profile-text">
+          <h1 id="acc-name-display">Your dashboard</h1>
+          <p class="acc-email-display" id="acc-email-display"></p>
+          <p class="acc-member-since" id="acc-member-since"></p>
+        </div>
+        <button type="button" class="acc-signout-btn" id="btn-signout"><i class="ti ti-logout"></i> Sign out</button>
+      </div>
+
+      <div class="acc-tiles">
+        <div class="acc-tile">
+          <span class="acc-tile-icon"><i class="ti ti-route"></i></span>
+          <span class="acc-tile-value" id="stat-trips">—</span>
+          <span class="acc-tile-label">Trips checked</span>
+        </div>
+        <div class="acc-tile">
+          <span class="acc-tile-icon"><i class="ti ti-alert-triangle"></i></span>
+          <span class="acc-tile-value" id="stat-reports">—</span>
+          <span class="acc-tile-label">Complaints raised</span>
+        </div>
+        <div class="acc-tile">
+          <span class="acc-tile-icon"><i class="ti ti-map-pin"></i></span>
+          <span class="acc-tile-value" id="stat-cities">—</span>
+          <span class="acc-tile-label">Cities used</span>
+        </div>
+        <div class="acc-tile">
+          <span class="acc-tile-icon"><i class="ti ti-circle-check"></i></span>
+          <span class="acc-tile-value" id="stat-succeeded">—</span>
+          <span class="acc-tile-label">Routes found</span>
+        </div>
+      </div>
+
+      <div class="acc-panel">
+        <div class="acc-panel-header">
+          <h2><i class="ti ti-history"></i> Trip history</h2>
+          <span class="acc-panel-hint">Your 25 most recent fare checks</span>
+        </div>
+        <div id="trips-body"><div class="acc-empty">Loading…</div></div>
+      </div>
+
+      <div class="acc-panel">
+        <div class="acc-panel-header">
+          <h2><i class="ti ti-flag"></i> Complaints raised</h2>
+          <span class="acc-panel-hint">Vehicles you've reported for meter mismatch</span>
+        </div>
+        <div id="reports-body"><div class="acc-empty">Loading…</div></div>
+      </div>
+
+      <div class="acc-panel acc-panel--danger">
+        <div class="acc-panel-header">
+          <h2><i class="ti ti-trash"></i> Delete account</h2>
+        </div>
+        <div class="acc-danger-body">
+          <p>This permanently deletes your account, your trip history and the complaints you've raised. It cannot be undone.</p>
+          <button type="button" class="acc-danger-btn" id="btn-delete">Delete my account</button>
+          <div class="acc-confirm" id="acc-confirm" style="display:none">
+            <p>Type <strong>DELETE</strong> to confirm.</p>
+            <input id="acc-confirm-input" type="text" autocomplete="off" placeholder="DELETE"/>
+            <div class="acc-confirm-actions">
+              <button type="button" class="acc-danger-btn" id="btn-delete-confirm" disabled>Permanently delete</button>
+              <button type="button" class="acc-link" id="btn-delete-cancel">Cancel</button>
+            </div>
+          </div>
+          <p class="acc-msg" id="acc-delete-msg"></p>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script is:inline src="/auth.js"></script>
+  <script is:inline src="/account.js"></script>
+</body>
+</html>
