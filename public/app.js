@@ -26,6 +26,29 @@
 const SUPABASE_URL      = 'https://uolzvbewjditinjfgdtb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_7GHLx872yuUQcn8lKcDBVw_ehC9Cx6e';
 
+/* ── Account-aware inserts ──
+   auth.js (window.MSAuth) is optional: the calculator works exactly as
+   before when signed out, and these helpers then return the anon-key
+   headers and a null user_id, which is what the RLS policy for `anon`
+   expects. When a session exists the row is stamped with the user's id
+   and sent with their access token, so it appears in their dashboard.
+   user_feedback is deliberately left on the anon path - it has no
+   user_id column and no authenticated-insert policy. */
+function currentUserId() {
+  const u = window.MSAuth && window.MSAuth.getUser && window.MSAuth.getUser();
+  return u ? u.id : null;
+}
+
+function supabaseWriteHeaders() {
+  const session = window.MSAuth && window.MSAuth.getSession && window.MSAuth.getSession();
+  return {
+    'Content-Type':  'application/json',
+    'apikey':        SUPABASE_ANON_KEY,
+    'Authorization': 'Bearer ' + (session ? session.access_token : SUPABASE_ANON_KEY),
+    'Prefer':        'return=minimal',
+  };
+}
+
 /* ── State ── */
 let mapInstance        = null;
 let directionsRenderer = null;
@@ -358,16 +381,12 @@ function logFareCalculation({ pickup, dropoff, isNight, luggage, succeeded, dist
     succeeded:       !!succeeded,
     distance_km:     distanceKm != null ? Math.round(distanceKm * 100) / 100 : null,
     calculated_fare: calculatedFare != null ? Math.round(calculatedFare) : null,
+    user_id:         currentUserId(),
   };
 
   fetch(`${SUPABASE_URL}/rest/v1/fare_calculations`, {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'apikey':        SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Prefer':        'return=minimal',
-    },
+    headers: supabaseWriteHeaders(),
     body: JSON.stringify(payload),
   }).catch(function (err) {
     console.warn('Fare calculation logging failed (non-blocking):', err);
@@ -645,16 +664,12 @@ window.submitReport = function () {
     calculated_fare:      rd.calculatedFare != null ? Math.round(rd.calculatedFare) : null,
     actual_fare_charged:  actualFareCharged != null ? Math.round(actualFareCharged) : null,
     is_night:             !!rd.isNight,
+    user_id:              currentUserId(),
   };
 
   fetch(`${SUPABASE_URL}/rest/v1/vehicle_reports`, {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'apikey':        SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Prefer':        'return=minimal',
-    },
+    headers: supabaseWriteHeaders(),
     body: JSON.stringify(payload),
   })
     .then(function (res) {
