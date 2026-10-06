@@ -30,10 +30,23 @@ name: Build Signed Release AAB
 
 on:
   workflow_dispatch:
+    inputs:
+      version_code:
+        description: "versionCode (leave blank to auto-generate from the run number)"
+        required: false
+        type: string
+      version_name:
+        description: "versionName, e.g. 2.0.5 (leave blank to keep the build.gradle value)"
+        required: false
+        type: string
 
 jobs:
   build-release:
     runs-on: ubuntu-latest
+    env:
+      # Lifts the auto-generated versionCode clear of codes already used by
+      # earlier hand-edited builds. Raise this if Play ever reports a clash.
+      VERSION_CODE_BASE: 100
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -70,8 +83,54 @@ jobs:
           fi
           echo "Keystore looks real ($FILESIZE bytes)."
 
+      - name: Work out the version for this build
+        id: version
+        run: |
+          set -euo pipefail
+
+          # WHY THIS STEP EXISTS
+          # build.gradle reads VERSION_CODE from the environment and falls back
+          # to a hardcoded literal when it is absent. Nothing here ever set it,
+          # so every single build shipped the same versionCode and the number
+          # had to be edited by hand in build.gradle before each release.
+          #
+          # VERSION_CODE_BASE + run_number gives a value that always increases
+          # and never repeats, because GitHub's run_number only ever counts up
+          # for a given workflow. The base lifts it clear of the codes already
+          # consumed by earlier manual builds.
+          BASE=${VERSION_CODE_BASE}
+          AUTO=$(( BASE + GITHUB_RUN_NUMBER ))
+          CODE="${{ inputs.version_code }}"
+          if [[ -z "${CODE}" ]]; then CODE="${AUTO}"; fi
+
+          if ! [[ "${CODE}" =~ ^[0-9]+$ ]]; then
+            echo "::error::versionCode '${CODE}' is not a positive integer"
+            exit 1
+          fi
+
+          # The fallback literal in build.gradle records the highest code used
+          # before CI took over. Anything at or below it would be rejected by
+          # Play as already used.
+          FALLBACK=$(grep -oP 'VERSION_CODE"\)\.toInteger\(\) : \K[0-9]+' android/app/build.gradle)
+          if [[ "${CODE}" -le "${FALLBACK}" ]]; then
+            echo "::error::versionCode ${CODE} is not greater than ${FALLBACK}, which has already been used. Raise VERSION_CODE_BASE or pass version_code manually."
+            exit 1
+          fi
+
+          NAME="${{ inputs.version_name }}"
+          if [[ -z "${NAME}" ]]; then
+            NAME=$(grep -oP 'versionName System.getenv\("VERSION_NAME"\) \?: "\K[^"]+' android/app/build.gradle)
+          fi
+
+          echo "code=${CODE}" >> "$GITHUB_OUTPUT"
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "versionCode=${CODE}  versionName=${NAME}"
+
       - name: Build release bundle (.aab) - unsigned at this point, signed in the next step
         working-directory: android
+        env:
+          VERSION_CODE: ${{ steps.version.outputs.code }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
         run: ./gradlew bundleRelease --no-daemon
 
       - name: Sign the .aab directly with jarsigner (alias auto-detected from the keystore)
