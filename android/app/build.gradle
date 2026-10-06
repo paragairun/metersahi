@@ -7,8 +7,16 @@ android {
         applicationId "in.metersahi.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // Version is supplied by CI (see .github/workflows/android-release.yml),
+        // which computes a fresh, always-increasing versionCode per run.
+        // The literals below are only the local-build fallback for when the
+        // env vars are absent - they are NOT the source of truth, and editing
+        // them by hand is no longer necessary for a release.
+        //
+        // Play rejects any upload whose versionCode has been used before, so
+        // the CI value must only ever go up.
         versionCode System.getenv("VERSION_CODE") ? System.getenv("VERSION_CODE").toInteger() : 6
-        versionName "2.0.4"
+        versionName System.getenv("VERSION_NAME") ?: "2.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
