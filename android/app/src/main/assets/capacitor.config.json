@@ -3,7 +3,7 @@
 	"appName": "MeterSahi?",
 	"webDir": "www",
 	"server": {
-		"url": "https://metersahi.in",
+		"url": "https://metersahi.in/?utm_source=android_app&utm_medium=app",
 		"cleartext": false,
 		"allowNavigation": [
 			"metersahi.in",
