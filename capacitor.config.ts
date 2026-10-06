@@ -12,7 +12,7 @@ const config: CapacitorConfig = {
   appName: 'MeterSahi?',
   webDir: 'www',
   server: {
-    url: 'https://metersahi.in',
+    url: 'https://metersahi.in/?utm_source=android_app&utm_medium=app',
     cleartext: false,
     // Origins the WebView is allowed to navigate to, beyond the main
     // server.url itself - covers everything the site actually talks
