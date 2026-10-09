@@ -12,6 +12,7 @@
  *   Kolkata     : West Bengal Transport Dept
  *   Chennai     : Tamil Nadu RTA
  *   Ahmedabad   : Gujarat RTA, w.e.f. Nov 2021
+ *   Surat       : Gujarat RTA, w.e.f. Nov 2021  
  */
 
 'use strict';
@@ -401,6 +402,50 @@ const CITIES = {
     helpline: '1800-233-1022',
   },
 
+ surat: {
+    name:         'Surat',
+    slug:         'surat',
+    state:        'Gujarat',
+    country:      'India',
+    countryCode:  'IN',
+    stateCode:    'GJ',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
+    mapCenter:    { lat: 21.170240, lng: 72.831062 },
+    acBounds:     { sw: { lat: 21.10, lng: 72.40 }, ne: { lat: 21.30, lng: 72.60 } },
+    tariffDate:   '10 Jun 2022',
+    tariff: {
+      MIN_FARE:          20,
+      MIN_KM:            1.5,
+      RATE_PER_KM:       15,
+      WAIT_RATE_PER_MIN: 1.5,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       0,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 3,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.80,
+    },
+    
+    taxiTariffDate: '10 Jun 2022',
+    taxiTariff: {
+      MIN_FARE:          30,
+      MIN_KM:            1.5,
+      RATE_PER_KM:       20,
+      WAIT_RATE_PER_MIN: 2.0,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       0,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 6,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.80,
+    },
+    rtoContact: [
+      { label: 'RTO Surat', phone: '0261-2977191', email: 'rto-trans-sur@gujarat.gov.in' },
+    ],
+  },
+
+   
   // Taxi-primary city: no auto-rickshaw tariff exists in any meaningful
   // sense in Goa (multiple firsthand accounts confirm autos are rare to
   // nonexistent, especially North Goa). The regulated vehicle is the
@@ -1259,7 +1304,7 @@ const CITIES = {
 /* ── Ordered list for the dropdown ── */
 const CITY_LIST = [
   'mumbai', 'delhi', 'bengaluru', 'hyderabad',
-  'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad',
+  'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad', 'surat',
   'goa', 'gangtok', 'nagpur', 'nashik',
   'bangkok', 'istanbul', 'mexicocity', 'riodejaneiro', 'saopaulo',
   'cebucity', 'gurugram', 'faridabad', 'chandigarh', 'srinagar',
@@ -1372,6 +1417,7 @@ var GEO_CITY_MAP = {
   'howrah':       'kolkata',
   'chennai':      'chennai',
   'ahmedabad':    'ahmedabad',
+  'surat':        'surat',
 
   'panaji':       'goa',
   'panjim':       'goa',
@@ -1430,6 +1476,7 @@ var GEO_REGION_MAP = {
   'west bengal':    'kolkata',
   'tamil nadu':     'chennai',
   'gujarat':        'ahmedabad',
+  'gujarat':        'surat', 
   'goa':            'goa',
   'sikkim':         'gangtok',
   'chandigarh':     'chandigarh',
