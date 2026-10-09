@@ -12,7 +12,8 @@
  *   Kolkata     : West Bengal Transport Dept
  *   Chennai     : Tamil Nadu RTA
  *   Ahmedabad   : Gujarat RTA, w.e.f. Nov 2021
- *   Surat       : Gujarat RTA, w.e.f. Nov 2021  
+ *   Surat       : Gujarat RTA, w.e.f. Nov 2021
+ *   Jaipur      : Jaipur RTO, Still Under Consideration
  */
 
 'use strict';
@@ -396,6 +397,20 @@ const CITIES = {
       TOLERANCE:         5,
       STANDSTILL_FACTOR: 0.80,
     },
+
+     taxiTariffDate: '22 Jun 2026',
+     taxiTariff: {
+      MIN_FARE:          30,
+      MIN_KM:            1.5,
+      RATE_PER_KM:       20,
+      WAIT_RATE_PER_MIN: 2.0,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       0,
+      NIGHT_END:         5,
+      LUGGAGE_PER_PIECE: 6,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.80,
+    },
     rtoContact: [
       { label: 'RTO Ahmedabad', phone: '079-26580701', email: '' },
     ],
@@ -443,8 +458,39 @@ const CITIES = {
     rtoContact: [
       { label: 'RTO Surat', phone: '0261-2977191', email: 'rto-trans-sur@gujarat.gov.in' },
     ],
+    helpline: '0261-2977191',
   },
 
+jaipur: {
+    name:         'Jaipur',
+    slug:         'jaipur',
+    state:        'Rajasthan',
+    country:      'India',
+    countryCode:  'IN',
+    stateCode:    'RJ',
+    currencyCode: 'INR',
+    currencySymbol: '₹',
+    mapCenter:    { lat: 26.915, lng: 75.820 },
+    acBounds:     { sw: { lat: 26.54, lng: 75.49 }, ne: { lat: 26.74, lng: 75.69 } },
+   
+    tariffDate:   'Still Under Consideration',
+    tariff: {
+      MIN_FARE:          25,
+      MIN_KM:            1.25,
+      RATE_PER_KM:       15.00,
+      WAIT_RATE_PER_MIN: 1.50,
+      NIGHT_MULTIPLIER:  1.25,
+      NIGHT_START:       23,
+      NIGHT_END:         6,
+      LUGGAGE_PER_PIECE: 0,
+      TOLERANCE:         5,
+      STANDSTILL_FACTOR: 0.80,
+    },
+    rtoContact: [
+      { label: 'RTO Jaipur', phone: '044-26745959', email: 'rto.jaipur.tport@rajasthan.gov.in' },
+    ],
+    helpline: '044-26745959',
+  },
    
   // Taxi-primary city: no auto-rickshaw tariff exists in any meaningful
   // sense in Goa (multiple firsthand accounts confirm autos are rare to
@@ -1305,7 +1351,7 @@ const CITIES = {
 const CITY_LIST = [
   'mumbai', 'delhi', 'bengaluru', 'hyderabad',
   'pune', 'kochi', 'kolkata', 'chennai', 'ahmedabad', 'surat',
-  'goa', 'gangtok', 'nagpur', 'nashik',
+  'jaipur', 'goa', 'gangtok', 'nagpur', 'nashik',
   'bangkok', 'istanbul', 'mexicocity', 'riodejaneiro', 'saopaulo',
   'cebucity', 'gurugram', 'faridabad', 'chandigarh', 'srinagar',
   'shillong', 'indore', 'thiruvananthapuram', 'kozhikode',
@@ -1418,6 +1464,7 @@ var GEO_CITY_MAP = {
   'chennai':      'chennai',
   'ahmedabad':    'ahmedabad',
   'surat':        'surat',
+  'jaipur':       'jaipur',
 
   'panaji':       'goa',
   'panjim':       'goa',
@@ -1476,7 +1523,8 @@ var GEO_REGION_MAP = {
   'west bengal':    'kolkata',
   'tamil nadu':     'chennai',
   'gujarat':        'ahmedabad',
-  'gujarat':        'surat', 
+  'gujarat':        'surat',
+  'rajasthan':      'jaipur', 
   'goa':            'goa',
   'sikkim':         'gangtok',
   'chandigarh':     'chandigarh',
