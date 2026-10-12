@@ -8,25 +8,80 @@ beforeAll(() => {
 });
 
 describe('computeFare - flat-rate cities', () => {
-  it('matches Maharashtra MVD\'s own worked example (2.40km => Rs 41)', () => {
-    // Straight from the official Mumbai tariff card: "for 2.40 KMs the
-    // fare will be 17.14 x 2.40 = 41.13 i.e. Rs. 41"
-    const T = sandbox.CITIES.mumbai.tariff;
-    const fare = sandbox.computeFare(2.4, 0, false, 0, T);
-    expect(fare.subtotal).toBe(41);
+  it('reproduces Maharashtra MVD\'s worked example on the tariff it was published for', () => {
+    // The official Mumbai card: "for 2.40 KMs the fare will be
+    // 17.14 x 2.40 = 41.13 i.e. Rs. 41". Pinned to the 2025 figures the
+    // example was published against, NOT to CITIES.mumbai - that entry
+    // tracks the current tariff and moves whenever the state revises it,
+    // which is what made this test fail the moment the rates changed.
+    const published2025 = {
+      MIN_FARE: 26, MIN_KM: 1.5, RATE_PER_KM: 17.14,
+      WAIT_RATE_PER_MIN: 1.714, NIGHT_MULTIPLIER: 1.25,
+      LUGGAGE_PER_PIECE: 6, TOLERANCE: 5,
+    };
+    // 26 + (2.40 - 1.5) x 17.14 = 41.43 -> 41. The card's multiply-through
+    // shortcut gives 41.13 -> 41 as well: identical, because Maharashtra
+    // sets MIN_FARE (26) to MIN_KM x RATE_PER_KM (25.71). That identity is
+    // why the old whole-distance formula looked correct here.
+    expect(sandbox.computeFare(2.4, 0, false, 0, published2025).subtotal).toBe(41);
   });
 
   it('charges the minimum fare for trips at or under MIN_KM', () => {
-    const T = sandbox.CITIES.mumbai.tariff; // MIN_FARE 26, MIN_KM 1.5
-    expect(sandbox.computeFare(1.5, 0, false, 0, T).subtotal).toBe(26);
-    expect(sandbox.computeFare(0.5, 0, false, 0, T).subtotal).toBe(26);
+    const T = sandbox.CITIES.mumbai.tariff;
+    expect(sandbox.computeFare(T.MIN_KM, 0, false, 0, T).subtotal).toBe(T.MIN_FARE);
+    expect(sandbox.computeFare(0.5, 0, false, 0, T).subtotal).toBe(T.MIN_FARE);
   });
 
-  it('never charges less than the minimum fare even if distance*rate is lower', () => {
+  it('bills only the distance BEYOND MIN_KM, per the Delhi notification', () => {
+    // Delhi's revised fares: Rs 30 metre-down covering "the initial 1.5
+    // kilometre", then Rs 11/km. Rs 30 is far from 1.5 x 11 = 16.5, so
+    // this city discriminates between the two readings - unlike Mumbai.
+    const T = sandbox.CITIES.delhi.tariff;
+    expect(T.MIN_FARE).toBe(30);
+    expect(T.MIN_KM).toBe(1.5);
+    expect(T.RATE_PER_KM).toBe(11);
+
+    // 5km: 30 + 3.5 x 11 = 68.5 -> 69. The old formula gave
+    // max(30, 5 x 11) = 55, undercharging by Rs 14.
+    expect(sandbox.computeFare(5, 0, false, 0, T).subtotal).toBe(69);
+    // The shortfall was a flat Rs 13.50 at every distance, not a
+    // percentage - so it did not shrink on longer trips.
+    expect(sandbox.computeFare(20, 0, false, 0, T).subtotal).toBe(234); // 30 + 18.5x11 = 233.5
+    expect(Math.round(20 * T.RATE_PER_KM)).toBe(220);                   // what it used to give
+  });
+
+  it('bills the Delhi taxi tariff from its first-kilometre minimum', () => {
+    // Rs 40 for the first km, then Rs 17/km "after metre down".
+    const T = sandbox.CITIES.delhi.taxiTariff;
+    expect(sandbox.computeFare(1, 0, false, 0, T).subtotal).toBe(40);
+    // 5km: 40 + 4 x 17 = 108, against 85 under the old formula.
+    expect(sandbox.computeFare(5, 0, false, 0, T).subtotal).toBe(108);
+  });
+
+  it('is continuous across the MIN_KM boundary', () => {
+    // A hair over MIN_KM must not jump: the old formula could drop to
+    // the floor on one side and leap on the other.
+    for (const slug of ['delhi', 'mumbai', 'jaipur', 'surat', 'kochi']) {
+      const T = sandbox.CITIES[slug].tariff;
+      const at    = sandbox.computeFare(T.MIN_KM, 0, false, 0, T).subtotal;
+      const just  = sandbox.computeFare(T.MIN_KM + 0.01, 0, false, 0, T).subtotal;
+      expect(just).toBeGreaterThanOrEqual(at);
+      expect(just - at).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('charges the newly added Surat and Jaipur tariffs from their own minimums', () => {
+    const surat = sandbox.CITIES.surat.tariff;   // 20 / 1.5km / 15
+    const jaipur = sandbox.CITIES.jaipur.tariff; // 25 / 1.25km / 15
+    expect(sandbox.computeFare(5, 0, false, 0, surat).subtotal).toBe(73);  // 20 + 3.5x15
+    expect(sandbox.computeFare(5, 0, false, 0, jaipur).subtotal).toBe(81); // 25 + 3.75x15
+  });
+
+  it('never charges less than the minimum fare even if the per-km rate is tiny', () => {
     const T = sandbox.CITIES.mumbai.tariff;
-    // 1.6km * 17.14 = 27.4 -> rounds to 27, still above min, sanity check
-    // the Math.max(MIN_FARE, ...) guard with a rate that WOULD dip below
-    const lowRateTariff = { ...T, RATE_PER_KM: 1 }; // 1.6km * 1 = 1.6 -> 2
+    // Exercises the Math.max(MIN_FARE, ...) floor: the beyond-MIN_KM
+    // portion here contributes almost nothing.
+    const lowRateTariff = { ...T, RATE_PER_KM: 0.01 };
     expect(sandbox.computeFare(1.6, 0, false, 0, lowRateTariff).subtotal).toBe(T.MIN_FARE);
   });
 
@@ -129,12 +184,18 @@ describe('computeFare - flat-rate with optional FLAG_FALL (Istanbul)', () => {
     expect(sandbox.computeFare(10, 0, false, 0, istanbulTariff).subtotal).toBe(501);
   });
 
-  it('does not affect flat-rate cities with no FLAG_FALL defined (backward compatibility)', () => {
-    // Same Maharashtra MVD worked example used elsewhere in this file -
-    // must still compute identically now that FLAG_FALL exists as a
-    // possible field, since Mumbai's tariff never sets it.
-    const mumbaiTariff = { MIN_FARE: 27, MIN_KM: 1.5, RATE_PER_KM: 18.22, WAIT_RATE_PER_MIN: 1.822, NIGHT_MULTIPLIER: 1.25, LUGGAGE_PER_PIECE: 6 };
-    expect(sandbox.computeFare(2.4, 0, false, 0, mumbaiTariff).subtotal).toBe(41);
+  it('leaves tariffs without FLAG_FALL on the Indian minimum-covers-MIN_KM branch', () => {
+    // A tariff with no FLAG_FALL must bill only beyond MIN_KM; the same
+    // tariff WITH a flag-fall must bill the whole distance plus the fee.
+    // Asserting both from one base tariff is what keeps the two
+    // structures from quietly collapsing into each other.
+    const indian = { MIN_FARE: 27, MIN_KM: 1.5, RATE_PER_KM: 18.22, WAIT_RATE_PER_MIN: 1.822, NIGHT_MULTIPLIER: 1.25, LUGGAGE_PER_PIECE: 6 };
+    const withFlagFall = { ...indian, FLAG_FALL: 10 };
+
+    // 27 + (2.4 - 1.5) x 18.22 = 43.40 -> 43
+    expect(sandbox.computeFare(2.4, 0, false, 0, indian).subtotal).toBe(43);
+    // 10 + 2.4 x 18.22 = 53.73 -> 54, floored at MIN_FARE 27
+    expect(sandbox.computeFare(2.4, 0, false, 0, withFlagFall).subtotal).toBe(54);
   });
 
   it('matches Mexico City\'s sourced day/night ratio exactly (20% night surcharge)', () => {
