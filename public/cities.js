@@ -1621,16 +1621,43 @@ function computeFare(distKm, waitMin, isNight, luggagePieces, tariff) {
   const freeWaitMins = T.WAIT_FREE_MINS || 0;
   const billableWaitMin = Math.max(0, waitMin - freeWaitMins);
 
-  // FLAG_FALL is an optional fixed charge added on top of the per-km
-  // rate (distinct from MIN_FARE, which is a floor). Needed for cities
-  // like Istanbul where the meter is "opening fee + per-km for the
-  // whole distance", with a separate minimum-fare floor for short
-  // trips - a genuinely different structure from Mumbai-style tariffs
-  // where MIN_FARE alone covers the first MIN_KM. Defaults to 0, so
-  // every existing tariff without this field computes exactly as before.
-  let base = distKm <= T.MIN_KM
-    ? T.MIN_FARE
-    : Math.max(T.MIN_FARE, Math.round((T.FLAG_FALL || 0) + distKm * T.RATE_PER_KM));
+  // BASE FARE — two genuinely different tariff structures.
+  //
+  // 1. Indian RTO structure (the default): MIN_FARE buys the first
+  //    MIN_KM outright, and RATE_PER_KM applies only to the distance
+  //    BEYOND MIN_KM. Delhi's notification is explicit about this - the
+  //    Rs 30 "metre down charge" covers "the initial 1.5 kilometre" and
+  //    Rs 11/km applies after it; taxis are Rs 40 for the first km then
+  //    Rs 17/km "after metre down".
+  //
+  //    This previously billed the WHOLE distance at RATE_PER_KM with
+  //    MIN_FARE as a mere floor. The two readings agree only when
+  //    MIN_FARE == MIN_KM * RATE_PER_KM, which happens to hold in
+  //    Maharashtra and Gujarat - so the error stayed invisible in the
+  //    cities with published worked examples, while Delhi undercharged
+  //    by a flat Rs 13.50 on every auto trip and Rs 23 on every taxi
+  //    trip, Kerala by Rs 7.50 and Chennai by Rs 3.40, regardless of
+  //    distance. Maharashtra's own card multiplies through
+  //    (17.14 x 2.40 = 41.13) because that shortcut is exact for its
+  //    numbers; it is not the general rule.
+  //
+  // 2. FLAG_FALL structure: an opening fee PLUS per-km for the whole
+  //    distance, with MIN_FARE only as a floor for short trips. This is
+  //    Istanbul's meter, and is left exactly as it was.
+  //
+  // The Math.max floor is retained in both branches so a tariff whose
+  // computed base somehow lands under MIN_FARE still cannot go below it.
+  let base;
+  if (distKm <= T.MIN_KM) {
+    base = T.MIN_FARE;
+  } else if (T.FLAG_FALL) {
+    base = Math.max(T.MIN_FARE, Math.round(T.FLAG_FALL + distKm * T.RATE_PER_KM));
+  } else {
+    base = Math.max(
+      T.MIN_FARE,
+      Math.round(T.MIN_FARE + (distKm - T.MIN_KM) * T.RATE_PER_KM),
+    );
+  }
 
   const waitCharge    = Math.round(billableWaitMin * T.WAIT_RATE_PER_MIN);
   const luggageCharge = luggagePieces * (T.LUGGAGE_PER_PIECE || 0);
