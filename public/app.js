@@ -39,14 +39,62 @@ function currentUserId() {
   return u ? u.id : null;
 }
 
-function supabaseWriteHeaders() {
-  const session = window.MSAuth && window.MSAuth.getSession && window.MSAuth.getSession();
+/** The anon-key header set. One definition, used by every write. */
+function supabaseAnonHeaders() {
   return {
     'Content-Type':  'application/json',
     'apikey':        SUPABASE_ANON_KEY,
-    'Authorization': 'Bearer ' + (session ? session.access_token : SUPABASE_ANON_KEY),
+    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
     'Prefer':        'return=minimal',
   };
+}
+
+/**
+ * The same headers, but carrying the signed-in user's access token so
+ * the row is written as `authenticated` and can satisfy an own-rows RLS
+ * policy. Falls back to the anon key when nobody is signed in.
+ */
+function supabaseWriteHeaders() {
+  const session = window.MSAuth && window.MSAuth.getSession && window.MSAuth.getSession();
+  const h = supabaseAnonHeaders();
+  if (session && session.access_token) {
+    h.Authorization = 'Bearer ' + session.access_token;
+  }
+  return h;
+}
+
+/**
+ * POST one row to a Supabase table, rejecting with a USEFUL error when
+ * the database refuses it.
+ *
+ * This exists because `fetch(...).catch(...)` does not catch HTTP
+ * errors. A 400 or a 403 resolves the promise normally, so a write that
+ * PostgREST rejected looked identical to one that succeeded, and the
+ * .catch() never ran. fare_calculations silently recorded nothing for
+ * days as a result: the real reason was sitting in a response body
+ * nobody read. Two of the three write sites already checked res.ok by
+ * hand; this makes it impossible to forget on a fourth.
+ *
+ * The response body is included in the error, because PostgREST puts
+ * the actual cause there ("column user_id does not exist", "new row
+ * violates row-level security policy") and the status code alone does
+ * not distinguish a missing column from a policy refusal.
+ */
+function supabaseInsert(table, payload, headers) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: headers || supabaseWriteHeaders(),
+    body: JSON.stringify(payload),
+  }).then(function (res) {
+    if (res.ok) return res;
+    // .text() rather than .json(): an error body is not always JSON,
+    // and a parse failure here would mask the error we are reporting.
+    return res.text().then(function (body) {
+      throw new Error(`${table} insert failed: HTTP ${res.status} ${body || '(empty body)'}`);
+    }, function () {
+      throw new Error(`${table} insert failed: HTTP ${res.status} (body unreadable)`);
+    });
+  });
 }
 
 /* ── State ── */
@@ -190,8 +238,11 @@ window.initMap = function () {
     // non-Indian city) since Thai addresses were being filtered out.
     const acCountryCode = (CITY.countryCode || 'IN').toLowerCase();
     const acOptions = { bounds, strictBounds: false, componentRestrictions: { country: acCountryCode } };
-    new google.maps.places.Autocomplete(document.getElementById('pickup'),  acOptions);
-    new google.maps.places.Autocomplete(document.getElementById('dropoff'), acOptions);
+    // Each picker records the place the user actually chooses, so the
+    // route is computed between those two points rather than between
+    // whatever their names geocode back to.
+    attachPlacePicker(document.getElementById('pickup'),  'pickup',  acOptions);
+    attachPlacePicker(document.getElementById('dropoff'), 'dropoff', acOptions);
 
     mapReady = true;
   } catch (err) {
@@ -255,7 +306,16 @@ function reverseGeocodeAndFillPickup(lat, lng) {
   geocoder.geocode({ location: { lat, lng } }, (results, status) => {
     if (status === 'OK' && results && results[0]) {
       const pickupInput = document.getElementById('pickup');
-      if (pickupInput) pickupInput.value = results[0].formatted_address;
+      if (pickupInput) {
+        pickupInput.value = results[0].formatted_address;
+        // The GPS fix is the most precise thing this field will ever
+        // have. Record the coordinates themselves — deliberately NOT
+        // the reverse-geocoded place id, which is the building or
+        // locality the address names rather than where the user is
+        // standing — so the route starts from the actual spot instead
+        // of wherever that formatted address geocodes back to.
+        resolvedPoints.pickup = { placeId: null, lat, lng, text: pickupInput.value };
+      }
       if (statusEl) { statusEl.textContent = 'Using your current location'; statusEl.className = 'locate-status locate-status--success'; }
     } else {
       // Reverse geocode failed - leave pickup empty for manual entry
@@ -269,6 +329,123 @@ function reverseGeocodeAndFillPickup(lat, lng) {
 window.useCurrentLocation = window.attemptAutoLocate;
 
 window.handleMapError = function () { mapReady = false; };
+
+/* ════════════════════════════════════════════
+   RESOLVED ENDPOINTS
+   The single source of truth for WHERE a route
+   starts and ends.
+
+   The Routes API will take a waypoint as a place
+   id, as a lat/lng, or as free text. Text is the
+   worst of the three: Google has to geocode it
+   again, and the point it lands on need not be
+   the one the user picked from the autocomplete
+   dropdown. That is how the site can report a
+   different distance from Google Maps for what
+   looks like the same journey.
+
+   So whenever a precise point IS known — the
+   user chose a prediction, or the browser handed
+   us a GPS fix — it is recorded here and sent
+   instead of the text. Free text remains the
+   fallback for someone who types an address and
+   presses Calculate without picking anything.
+   ════════════════════════════════════════════ */
+const resolvedPoints = { pickup: null, dropoff: null };
+
+function normaliseAddressText(s) {
+  return String(s == null ? '' : s).trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+/**
+ * The recorded point for a field, but only while it still describes
+ * what is actually in the box. If someone picks "Juhu Beach" and then
+ * edits the text, the stored point is stale: routing from it would
+ * quietly ignore what they typed and send them somewhere else.
+ */
+function resolvedPointFor(fieldId, currentText) {
+  const p = resolvedPoints[fieldId];
+  if (!p) return null;
+  return normaliseAddressText(p.text) === normaliseAddressText(currentText) ? p : null;
+}
+
+/**
+ * Number.isFinite rather than a truthiness check, because Number(null),
+ * Number('') and Number(false) are all 0 — a real coordinate in the
+ * Gulf of Guinea. 0,0 is rejected for the same reason: no address in
+ * any city this site covers resolves there, so it only ever means the
+ * value was missing.
+ */
+function isUsableCoordPair(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  if (lat === 0 && lng === 0) return false;
+  return Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+}
+
+/** Append the city when the text does not already name it. */
+function withCityContext(text, cityName) {
+  const t    = String(text == null ? '' : text).trim();
+  const city = String(cityName == null ? '' : cityName).trim();
+  if (!city) return t;
+  return t.toLowerCase().includes(city.toLowerCase()) ? t : t + ', ' + city + ', India';
+}
+
+/**
+ * One end of the journey as a Routes API waypoint, in order of
+ * precision: place id, then coordinates, then the typed text.
+ */
+function routeWaypoint(resolved, rawText, cityName) {
+  if (resolved && resolved.placeId) {
+    return { placeId: resolved.placeId };
+  }
+  if (resolved && isUsableCoordPair(resolved.lat, resolved.lng)) {
+    return { location: { latLng: { latitude: resolved.lat, longitude: resolved.lng } } };
+  }
+  return { address: withCityContext(rawText, cityName) };
+}
+
+/**
+ * Wires one input to Places Autocomplete and records whatever the user
+ * picks. Kept in one function so pickup and dropoff cannot drift apart.
+ */
+function attachPlacePicker(input, fieldId, acOptions) {
+  if (!input) return null;
+
+  const ac = new google.maps.places.Autocomplete(input, Object.assign({}, acOptions, {
+    // Only the fields actually used below. Asking for more moves the
+    // call into a dearer Places billing tier for no benefit.
+    fields: ['place_id', 'geometry.location', 'formatted_address', 'name'],
+  }));
+
+  ac.addListener('place_changed', function () {
+    const place = ac.getPlace();
+    // Pressing Enter without choosing a prediction returns an object
+    // with neither an id nor geometry. Treat that as "nothing picked"
+    // so the text fallback runs, rather than storing a half-filled
+    // place that would route from nowhere in particular.
+    if (!place || (!place.place_id && !(place.geometry && place.geometry.location))) {
+      resolvedPoints[fieldId] = null;
+      return;
+    }
+    const loc = place.geometry && place.geometry.location;
+    resolvedPoints[fieldId] = {
+      placeId: place.place_id || null,
+      lat: loc && typeof loc.lat === 'function' ? loc.lat() : undefined,
+      lng: loc && typeof loc.lng === 'function' ? loc.lng() : undefined,
+      // The widget has already written its own text into the box by the
+      // time this fires, so record exactly that — the staleness check
+      // then compares like with like.
+      text: input.value,
+    };
+  });
+
+  // Typing after choosing invalidates the choice.
+  input.addEventListener('input', function () {
+    if (resolvedPointFor(fieldId, input.value) === null) resolvedPoints[fieldId] = null;
+  });
+
+  return ac;
+}
 
 /* ════════════════════════════════════════════
    ROUTES API — REST call
@@ -295,8 +472,10 @@ function computeRoutesAPI(originAddress, destinationAddress) {
   const cityName = CITY.name;
 
   const body = {
-    origin:      { address: originAddress + (originAddress.toLowerCase().includes(cityName.toLowerCase()) ? '' : ', ' + cityName + ', India') },
-    destination: { address: destinationAddress + (destinationAddress.toLowerCase().includes(cityName.toLowerCase()) ? '' : ', ' + cityName + ', India') },
+    // Place id or coordinates when the user picked a real place, the
+    // typed text only as a fallback. See RESOLVED ENDPOINTS above.
+    origin:      routeWaypoint(resolvedPointFor('pickup',  originAddress),      originAddress,      cityName),
+    destination: routeWaypoint(resolvedPointFor('dropoff', destinationAddress), destinationAddress, cityName),
     travelMode:  'DRIVE',
     routingPreference: 'TRAFFIC_AWARE',
     computeAlternativeRoutes: false,
@@ -384,12 +563,10 @@ function logFareCalculation({ pickup, dropoff, isNight, luggage, succeeded, dist
     user_id:         currentUserId(),
   };
 
-  fetch(`${SUPABASE_URL}/rest/v1/fare_calculations`, {
-    method: 'POST',
-    headers: supabaseWriteHeaders(),
-    body: JSON.stringify(payload),
-  }).catch(function (err) {
-    console.warn('Fare calculation logging failed (non-blocking):', err);
+  // Still fire-and-forget - a logging failure must never interrupt the
+  // user - but a REJECTED write now says so, loudly, with the reason.
+  supabaseInsert('fare_calculations', payload).catch(function (err) {
+    console.error('Fare calculation logging failed (non-blocking):', err.message);
   });
 }
 
@@ -667,13 +844,8 @@ window.submitReport = function () {
     user_id:              currentUserId(),
   };
 
-  fetch(`${SUPABASE_URL}/rest/v1/vehicle_reports`, {
-    method: 'POST',
-    headers: supabaseWriteHeaders(),
-    body: JSON.stringify(payload),
-  })
-    .then(function (res) {
-      if (!res.ok) throw new Error('Supabase insert failed: ' + res.status);
+  supabaseInsert('vehicle_reports', payload)
+    .then(function () {
       btn.style.display = 'none';
       conf.innerHTML = `<i class="ti ti-circle-check"></i> Report for <strong>${plateNo}</strong> submitted. Thank you!`;
       conf.style.display = 'flex';
@@ -930,18 +1102,13 @@ window.submitFeedback = function () {
     feedback_text: (textInput.value || '').trim() || null,
   };
 
-  fetch(`${SUPABASE_URL}/rest/v1/user_feedback`, {
-    method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'apikey':        SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Prefer':        'return=minimal',
-    },
-    body: JSON.stringify(payload),
-  })
-    .then(function (res) {
-      if (!res.ok) throw new Error('Feedback insert failed: ' + res.status);
+  // Deliberately the ANON headers, not supabaseWriteHeaders(): feedback
+  // has always been written as `anon` and its RLS was built for that.
+  // Switching it to the user's token would change which role the insert
+  // runs as, which is not a change to make without checking that table's
+  // policies first.
+  supabaseInsert('user_feedback', payload, supabaseAnonHeaders())
+    .then(function () {
       setFeedbackStatus({ hasSubmittedBefore: true, status: 'submitted', visitsSinceAction: 0 });
       document.querySelector('.feedback-dialog h3').style.display = 'none';
       document.querySelector('.feedback-dialog-sub').style.display = 'none';
