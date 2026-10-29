@@ -344,12 +344,12 @@ const CITIES = {
     // actually accept in practice.
     tariffDate:   '2023 revised chart (TN auto fare)',
     tariff: {
-      MIN_FARE:          25,
+      MIN_FARE:          50,
       MIN_KM:            1.8,
-      RATE_PER_KM:       12.00,
-      WAIT_RATE_PER_MIN: 0.70,  // ₹3.50 per 5 min
+      RATE_PER_KM:       25.00,
+      WAIT_RATE_PER_MIN: 1.00,  // ₹3.50 per 5 min
       NIGHT_MULTIPLIER:  1.50,
-      NIGHT_START:       23,
+      NIGHT_START:       22,
       NIGHT_END:         5,
       LUGGAGE_PER_PIECE: 0,
       TOLERANCE:         5,
