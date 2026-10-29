@@ -3,6 +3,11 @@
     "name": "Mumbai",
     "slug": "mumbai",
     "state": "Maharashtra",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "MH",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 19.076,
       "lng": 72.8777
@@ -17,31 +22,31 @@
         "lng": 73.05
       }
     },
-    "tariffDate": "1st Sept 2026",
+    "tariffDate": "1 Sep 2026",
     "tariff": {
       "MIN_FARE": 27,
       "MIN_KM": 1.5,
       "RATE_PER_KM": 18.22,
-      "WAIT_RATE_PER_MIN": 1.714,
+      "WAIT_RATE_PER_MIN": 1.822,
       "NIGHT_MULTIPLIER": 1.25,
       "NIGHT_START": 0,
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 6,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
-    "taxiTariffDate": "1st Sept 2026",
+    "taxiTariffDate": "1 Sep 2026",
     "taxiTariff": {
       "MIN_FARE": 33,
       "MIN_KM": 1.5,
-      "RATE_PER_KM": 21.90,
-      "WAIT_RATE_PER_MIN": 2.066,
+      "RATE_PER_KM": 21.9,
+      "WAIT_RATE_PER_MIN": 2.19,
       "NIGHT_MULTIPLIER": 1.25,
       "NIGHT_START": 0,
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 6,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -66,6 +71,11 @@
     "name": "Pune",
     "slug": "pune",
     "state": "Maharashtra",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "MH",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 18.5204,
       "lng": 73.8567
@@ -82,29 +92,29 @@
     },
     "tariffDate": "1 Feb 2025",
     "tariff": {
-      "MIN_FARE": 26,
+      "MIN_FARE": 30,
       "MIN_KM": 1.5,
-      "RATE_PER_KM": 17.14,
-      "WAIT_RATE_PER_MIN": 1.714,
+      "RATE_PER_KM": 20,
+      "WAIT_RATE_PER_MIN": 2,
       "NIGHT_MULTIPLIER": 1.25,
       "NIGHT_START": 0,
       "NIGHT_END": 5,
-      "LUGGAGE_PER_PIECE": 6,
+      "LUGGAGE_PER_PIECE": 3,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "taxiTariffDate": "1 Feb 2025",
     "taxiTariff": {
-      "MIN_FARE": 31,
+      "MIN_FARE": 37,
       "MIN_KM": 1.5,
-      "RATE_PER_KM": 20.66,
-      "WAIT_RATE_PER_MIN": 2.066,
+      "RATE_PER_KM": 25,
+      "WAIT_RATE_PER_MIN": 2.5,
       "NIGHT_MULTIPLIER": 1.25,
       "NIGHT_START": 0,
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 6,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -124,6 +134,11 @@
     "name": "New Delhi",
     "slug": "delhi",
     "state": "Delhi",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "DL",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 28.6139,
       "lng": 77.209
@@ -149,7 +164,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 0,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "taxiTariffDate": "9 Jan 2023",
     "taxiTariff": {
@@ -162,7 +177,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 15,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -177,6 +192,11 @@
     "name": "Bengaluru",
     "slug": "bengaluru",
     "state": "Karnataka",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "KA",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 12.9716,
       "lng": 77.5946
@@ -203,7 +223,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 0,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -223,6 +243,11 @@
     "name": "Hyderabad",
     "slug": "hyderabad",
     "state": "Telangana",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "TS",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 17.385,
       "lng": 78.4867
@@ -248,7 +273,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 0,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -263,6 +288,11 @@
     "name": "Kochi",
     "slug": "kochi",
     "state": "Kerala",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "KL",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 9.9312,
       "lng": 76.2673
@@ -288,7 +318,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 0,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -303,6 +333,11 @@
     "name": "Kolkata",
     "slug": "kolkata",
     "state": "West Bengal",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "WB",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 22.5726,
       "lng": 88.3639
@@ -328,7 +363,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 0,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "taxiTariffDate": "~2016 (unrevised since, per Jan 2025 news report) - unconfirmed against original notification",
     "taxiTariff": {
@@ -341,7 +376,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 5,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -356,6 +391,11 @@
     "name": "Chennai",
     "slug": "chennai",
     "state": "Tamil Nadu",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "TN",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 13.0827,
       "lng": 80.2707
@@ -370,18 +410,18 @@
         "lng": 80.45
       }
     },
-    "tariffDate": "Current official",
+    "tariffDate": "2023 revised chart (TN auto fare)",
     "tariff": {
-      "MIN_FARE": 25,
+      "MIN_FARE": 50,
       "MIN_KM": 1.8,
-      "RATE_PER_KM": 16,
-      "WAIT_RATE_PER_MIN": 0.7,
+      "RATE_PER_KM": 25,
+      "WAIT_RATE_PER_MIN": 1,
       "NIGHT_MULTIPLIER": 1.5,
-      "NIGHT_START": 23,
+      "NIGHT_START": 22,
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 0,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -396,6 +436,11 @@
     "name": "Ahmedabad",
     "slug": "ahmedabad",
     "state": "Gujarat",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "GJ",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 23.0225,
       "lng": 72.5714
@@ -410,18 +455,31 @@
         "lng": 72.75
       }
     },
-    "tariffDate": "Nov 2021",
+    "tariffDate": "22 Jun 2026 (Transport Commissioner, Ahmedabad)",
     "tariff": {
-      "MIN_FARE": 18,
+      "MIN_FARE": 25,
       "MIN_KM": 1.25,
-      "RATE_PER_KM": 13,
+      "RATE_PER_KM": 20,
       "WAIT_RATE_PER_MIN": 1,
       "NIGHT_MULTIPLIER": 1.25,
       "NIGHT_START": 23,
       "NIGHT_END": 6,
       "LUGGAGE_PER_PIECE": 0,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "taxiTariffDate": "22 Jun 2026",
+    "taxiTariff": {
+      "MIN_FARE": 30,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 20,
+      "WAIT_RATE_PER_MIN": 2,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 0,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 6,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -432,10 +490,118 @@
     ],
     "helpline": "1800-233-1022"
   },
+  "surat": {
+    "name": "Surat",
+    "slug": "surat",
+    "state": "Gujarat",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "GJ",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 21.17024,
+      "lng": 72.831062
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 21.1,
+        "lng": 72.4
+      },
+      "ne": {
+        "lat": 21.3,
+        "lng": 72.6
+      }
+    },
+    "tariffDate": "10 Jun 2022",
+    "tariff": {
+      "MIN_FARE": 20,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 15,
+      "WAIT_RATE_PER_MIN": 1.5,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 0,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 3,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "taxiTariffDate": "10 Jun 2022",
+    "taxiTariff": {
+      "MIN_FARE": 30,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 20,
+      "WAIT_RATE_PER_MIN": 2,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 0,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 6,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Surat",
+        "phone": "0261-2977191",
+        "email": "rto-trans-sur@gujarat.gov.in"
+      }
+    ],
+    "helpline": "0261-2977191"
+  },
+  "jaipur": {
+    "name": "Jaipur",
+    "slug": "jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "RJ",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 26.915,
+      "lng": 75.82
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 26.54,
+        "lng": 75.49
+      },
+      "ne": {
+        "lat": 26.74,
+        "lng": 75.69
+      }
+    },
+    "tariffDate": "Still Under Consideration",
+    "tariff": {
+      "MIN_FARE": 25,
+      "MIN_KM": 1.25,
+      "RATE_PER_KM": 15,
+      "WAIT_RATE_PER_MIN": 1.5,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 23,
+      "NIGHT_END": 6,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Jaipur",
+        "phone": "044-26745959",
+        "email": "rto.jaipur.tport@rajasthan.gov.in"
+      }
+    ],
+    "helpline": "044-26745959"
+  },
   "goa": {
     "name": "Goa",
     "slug": "goa",
     "state": "Goa",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "GA",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "primaryVehicleType": "taxi",
     "mapCenter": {
       "lat": 15.4909,
@@ -462,7 +628,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 0,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -482,6 +648,11 @@
     "name": "Gangtok",
     "slug": "gangtok",
     "state": "Sikkim",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "SK",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "primaryVehicleType": "taxi",
     "mapCenter": {
       "lat": 27.3389,
@@ -531,7 +702,7 @@
       "NIGHT_END": 4,
       "LUGGAGE_PER_PIECE": 0,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -546,6 +717,11 @@
     "name": "Nagpur",
     "slug": "nagpur",
     "state": "Maharashtra",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "MH",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 21.1458,
       "lng": 79.0882
@@ -571,7 +747,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 6,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -591,6 +767,11 @@
     "name": "Nashik",
     "slug": "nashik",
     "state": "Maharashtra",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "MH",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
     "mapCenter": {
       "lat": 19.9975,
       "lng": 73.7898
@@ -616,7 +797,7 @@
       "NIGHT_END": 5,
       "LUGGAGE_PER_PIECE": 6,
       "TOLERANCE": 5,
-      "STANDSTILL_FACTOR": 0.9
+      "STANDSTILL_FACTOR": 0.8
     },
     "rtoContact": [
       {
@@ -626,5 +807,783 @@
       }
     ],
     "helpline": "1800-233-1922"
+  },
+  "bangkok": {
+    "name": "Bangkok",
+    "slug": "bangkok",
+    "state": "Bangkok",
+    "country": "Thailand",
+    "countryCode": "TH",
+    "currencyCode": "THB",
+    "currencySymbol": "฿",
+    "regulatorName": "Department of Land Transport, Thailand",
+    "regulatorShortName": "DLT",
+    "primaryVehicleType": "taxi",
+    "mapCenter": {
+      "lat": 13.7563,
+      "lng": 100.5018
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 13.55,
+        "lng": 100.3
+      },
+      "ne": {
+        "lat": 13.95,
+        "lng": 100.75
+      }
+    },
+    "tariffDate": "13 Jan 2023 (Royal Gazette)",
+    "tariff": {
+      "PROGRESSIVE_BANDS": [
+        {
+          "upTo": 1,
+          "flatFare": 40
+        },
+        {
+          "upTo": 10,
+          "perKm": 6.5
+        },
+        {
+          "upTo": 20,
+          "perKm": 7
+        },
+        {
+          "upTo": 40,
+          "perKm": 8
+        },
+        {
+          "upTo": 60,
+          "perKm": 8.5
+        },
+        {
+          "upTo": 999999,
+          "perKm": 8.5
+        }
+      ],
+      "WAIT_RATE_PER_MIN": 3,
+      "NIGHT_MULTIPLIER": 1,
+      "NIGHT_START": 0,
+      "NIGHT_END": 0,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "Tourist Police",
+        "phone": "1155",
+        "email": "yourfirstfriend@touristpolice.go.th"
+      }
+    ],
+    "helpline": "1584",
+    "helplineLabel": "DLT Complaint Hotline",
+    "helplineHint": "National hotline"
+  },
+  "istanbul": {
+    "name": "Istanbul",
+    "slug": "istanbul",
+    "state": "Istanbul",
+    "country": "Turkey",
+    "countryCode": "TR",
+    "currencyCode": "TRY",
+    "currencySymbol": "₺",
+    "regulatorName": "Istanbul Metropolitan Municipality (İBB)",
+    "regulatorShortName": "İBB",
+    "primaryVehicleType": "taxi",
+    "mapCenter": {
+      "lat": 41.0082,
+      "lng": 28.9784
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 40.8,
+        "lng": 28.6
+      },
+      "ne": {
+        "lat": 41.25,
+        "lng": 29.4
+      }
+    },
+    "tariffDate": "16 Feb 2026 (İBB Meclis decision)",
+    "tariff": {
+      "MIN_FARE": 210,
+      "MIN_KM": 0,
+      "RATE_PER_KM": 43.56,
+      "FLAG_FALL": 65.4,
+      "WAIT_RATE_PER_MIN": 9.07,
+      "NIGHT_MULTIPLIER": 1,
+      "NIGHT_START": 0,
+      "NIGHT_END": 0,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 10,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "Istanbul Taxi Drivers Guild",
+        "phone": "444 15 23",
+        "email": "info@iteo.org.tr"
+      }
+    ],
+    "helpline": "153",
+    "helplineLabel": "İBB Complaint Line",
+    "helplineHint": "Municipality hotline"
+  },
+  "mexicocity": {
+    "name": "Mexico City",
+    "slug": "mexicocity",
+    "state": "CDMX",
+    "country": "Mexico",
+    "countryCode": "MX",
+    "currencyCode": "MXN",
+    "currencySymbol": "MX$",
+    "regulatorName": "Secretaría de Movilidad (SEMOVI), Mexico City",
+    "regulatorShortName": "SEMOVI",
+    "primaryVehicleType": "taxi",
+    "mapCenter": {
+      "lat": 19.4326,
+      "lng": -99.1332
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 19.2,
+        "lng": -99.35
+      },
+      "ne": {
+        "lat": 19.6,
+        "lng": -98.95
+      }
+    },
+    "tariffDate": "Nov 2025 (confirmed unchanged)",
+    "tariff": {
+      "MIN_FARE": 8.74,
+      "MIN_KM": 0,
+      "RATE_PER_KM": 4.28,
+      "FLAG_FALL": 8.74,
+      "WAIT_RATE_PER_MIN": 1.43,
+      "NIGHT_MULTIPLIER": 1.2,
+      "NIGHT_START": 23,
+      "NIGHT_END": 6,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "SEMOVI VigiMovi (taxi reports)",
+        "phone": "56581111",
+        "email": "vigimovi@cdmx.gob.mx"
+      }
+    ],
+    "helpline": "56581111",
+    "helplineLabel": "LOCATEL (CDMX citizen line)",
+    "helplineHint": "City hotline"
+  },
+  "riodejaneiro": {
+    "name": "Rio de Janeiro",
+    "slug": "riodejaneiro",
+    "state": "Rio de Janeiro",
+    "country": "Brazil",
+    "countryCode": "BR",
+    "currencyCode": "BRL",
+    "currencySymbol": "R$",
+    "regulatorName": "Secretaria Municipal de Transportes (SMTR), Rio de Janeiro",
+    "regulatorShortName": "SMTR",
+    "primaryVehicleType": "taxi",
+    "mapCenter": {
+      "lat": -22.9068,
+      "lng": -43.1729
+    },
+    "acBounds": {
+      "sw": {
+        "lat": -23.08,
+        "lng": -43.8
+      },
+      "ne": {
+        "lat": -22.75,
+        "lng": -43.1
+      }
+    },
+    "tariffDate": "2 Jan 2026 (Resolução SMTR Nº 3784)",
+    "tariff": {
+      "MIN_FARE": 6.3,
+      "MIN_KM": 0,
+      "RATE_PER_KM": 3.85,
+      "FLAG_FALL": 6.3,
+      "WAIT_RATE_PER_MIN": 0.81,
+      "NIGHT_MULTIPLIER": 1.2,
+      "NIGHT_START": 21,
+      "NIGHT_END": 6,
+      "LUGGAGE_PER_PIECE": 3.85,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "SMTR Ouvidoria (complaints)",
+        "phone": "1746",
+        "email": "gabinete.smtr@prefeitura.rio"
+      }
+    ],
+    "helpline": "1746",
+    "helplineLabel": "Central 1746 (Prefeitura do Rio)",
+    "helplineHint": "City hotline"
+  },
+  "saopaulo": {
+    "name": "São Paulo",
+    "slug": "saopaulo",
+    "state": "São Paulo",
+    "country": "Brazil",
+    "countryCode": "BR",
+    "currencyCode": "BRL",
+    "currencySymbol": "R$",
+    "regulatorName": "Secretaria Municipal de Mobilidade Urbana e Transporte (SMT), São Paulo",
+    "regulatorShortName": "SMT",
+    "primaryVehicleType": "taxi",
+    "mapCenter": {
+      "lat": -23.5505,
+      "lng": -46.6333
+    },
+    "acBounds": {
+      "sw": {
+        "lat": -23.75,
+        "lng": -46.85
+      },
+      "ne": {
+        "lat": -23.35,
+        "lng": -46.4
+      }
+    },
+    "tariffDate": "11 Aug 2025 (SMT/DTP)",
+    "tariff": {
+      "MIN_FARE": 6.55,
+      "MIN_KM": 0,
+      "RATE_PER_KM": 4.8,
+      "FLAG_FALL": 6.55,
+      "WAIT_RATE_PER_MIN": 0.93,
+      "NIGHT_MULTIPLIER": 1.3,
+      "NIGHT_START": 20,
+      "NIGHT_END": 6,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "SP156 Taxi Complaints (DTP)",
+        "phone": "156",
+        "email": "ouvidoria@sptrans.com.br"
+      }
+    ],
+    "helpline": "156",
+    "helplineLabel": "Central 156 (Prefeitura de SP)",
+    "helplineHint": "City hotline"
+  },
+  "cebucity": {
+    "name": "Cebu City",
+    "slug": "cebucity",
+    "state": "Cebu",
+    "country": "Philippines",
+    "countryCode": "PH",
+    "currencyCode": "PHP",
+    "currencySymbol": "₱",
+    "regulatorName": "Land Transportation Franchising and Regulatory Board - Region 7 (LTFRB-7)",
+    "regulatorShortName": "LTFRB-7",
+    "primaryVehicleType": "taxi",
+    "mapCenter": {
+      "lat": 10.3157,
+      "lng": 123.8854
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 10.2,
+        "lng": 123.8
+      },
+      "ne": {
+        "lat": 10.4,
+        "lng": 123.95
+      }
+    },
+    "tariffDate": "Jan 2025 (LTFRB-7)",
+    "tariff": {
+      "MIN_FARE": 50,
+      "MIN_KM": 0,
+      "RATE_PER_KM": 13.5,
+      "FLAG_FALL": 50,
+      "WAIT_RATE_PER_MIN": 1,
+      "NIGHT_MULTIPLIER": 1,
+      "NIGHT_START": 0,
+      "NIGHT_END": 0,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "LTFRB-7 Cebu (direct)",
+        "phone": "0917 704 6862",
+        "email": "complaints@ltfrb.gov.ph"
+      }
+    ],
+    "helpline": "1342",
+    "helplineLabel": "LTFRB 24/7 Hotline",
+    "helplineHint": "National hotline"
+  },
+  "gurugram": {
+    "name": "Gurugram",
+    "slug": "gurugram",
+    "state": "Haryana",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "HR",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 28.4595,
+      "lng": 77.0266
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 28.35,
+        "lng": 76.9
+      },
+      "ne": {
+        "lat": 28.55,
+        "lng": 77.15
+      }
+    },
+    "tariffDate": "Haryana Transport Dept notification",
+    "tariff": {
+      "PROGRESSIVE_BANDS": [
+        {
+          "upTo": 1,
+          "flatFare": 12
+        },
+        {
+          "upTo": 999999,
+          "perKm": 8
+        }
+      ],
+      "WAIT_RATE_PER_MIN": 0.5,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 23,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 7.5,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Gurugram (HR-26)",
+        "phone": "0172-3968400",
+        "email": "stcharyana@hry.nic.in"
+      }
+    ],
+    "helpline": "0172-3968400",
+    "helplineLabel": "Haryana Saral Helpline",
+    "helplineHint": "State hotline"
+  },
+  "faridabad": {
+    "name": "Faridabad",
+    "slug": "faridabad",
+    "state": "Haryana",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "HR",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 28.4089,
+      "lng": 77.3178
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 28.3,
+        "lng": 77.2
+      },
+      "ne": {
+        "lat": 28.5,
+        "lng": 77.45
+      }
+    },
+    "tariffDate": "Haryana Transport Dept notification",
+    "tariff": {
+      "PROGRESSIVE_BANDS": [
+        {
+          "upTo": 1,
+          "flatFare": 12
+        },
+        {
+          "upTo": 999999,
+          "perKm": 8
+        }
+      ],
+      "WAIT_RATE_PER_MIN": 0.5,
+      "NIGHT_MULTIPLIER": 1.25,
+      "NIGHT_START": 23,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 7.5,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Faridabad (HR-29/38/51)",
+        "phone": "0172-3968400",
+        "email": "stcharyana@hry.nic.in"
+      }
+    ],
+    "helpline": "0172-3968400",
+    "helplineLabel": "Haryana Saral Helpline",
+    "helplineHint": "State hotline"
+  },
+  "chandigarh": {
+    "name": "Chandigarh",
+    "slug": "chandigarh",
+    "state": "Chandigarh",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "CH",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 30.7333,
+      "lng": 76.7794
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 30.65,
+        "lng": 76.7
+      },
+      "ne": {
+        "lat": 30.8,
+        "lng": 76.85
+      }
+    },
+    "tariffDate": "7 Jul 2025 (UT Chandigarh Administration)",
+    "tariff": {
+      "PROGRESSIVE_BANDS": [
+        {
+          "upTo": 3,
+          "flatFare": 50
+        },
+        {
+          "upTo": 999999,
+          "perKm": 13
+        }
+      ],
+      "WAIT_RATE_PER_MIN": 0,
+      "NIGHT_MULTIPLIER": 1,
+      "NIGHT_START": 0,
+      "NIGHT_END": 0,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "taxiTariffDate": "7 Jul 2025 (UT Chandigarh Administration)",
+    "taxiTariff": {
+      "PROGRESSIVE_BANDS": [
+        {
+          "upTo": 3,
+          "flatFare": 90
+        },
+        {
+          "upTo": 999999,
+          "perKm": 25
+        }
+      ],
+      "WAIT_RATE_PER_MIN": 0,
+      "NIGHT_MULTIPLIER": 1,
+      "NIGHT_START": 0,
+      "NIGHT_END": 0,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 10,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "Registering & Licensing Authority",
+        "phone": "0172-2700341",
+        "email": "rla-chd@nic.in"
+      }
+    ],
+    "helpline": "0172-2740045",
+    "helplineLabel": "UT Chandigarh Transport",
+    "helplineHint": "UT hotline"
+  },
+  "srinagar": {
+    "name": "Srinagar",
+    "slug": "srinagar",
+    "state": "Jammu and Kashmir",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "JK",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 34.0837,
+      "lng": 74.7973
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 33.95,
+        "lng": 74.65
+      },
+      "ne": {
+        "lat": 34.2,
+        "lng": 74.95
+      }
+    },
+    "tariffDate": "14 Mar 2026 (J&K Cabinet / RTO Kashmir)",
+    "tariff": {
+      "PROGRESSIVE_BANDS": [
+        {
+          "upTo": 1,
+          "flatFare": 25
+        },
+        {
+          "upTo": 999999,
+          "perKm": 20
+        }
+      ],
+      "WAIT_RATE_PER_MIN": 0,
+      "NIGHT_MULTIPLIER": 1,
+      "NIGHT_START": 0,
+      "NIGHT_END": 0,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "RTO Kashmir / J&K Transport Commissioner",
+        "phone": "0194-2506686",
+        "email": "tptcommissionerjk@gmail.com"
+      }
+    ],
+    "helpline": "0194-3574-338",
+    "helplineLabel": "District Srinagar Helpline",
+    "helplineHint": "District hotline"
+  },
+  "shillong": {
+    "name": "Shillong",
+    "slug": "shillong",
+    "state": "Meghalaya",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "ML",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 25.5788,
+      "lng": 91.8933
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 25.5,
+        "lng": 91.8
+      },
+      "ne": {
+        "lat": 25.65,
+        "lng": 91.95
+      }
+    },
+    "tariffDate": "13 Jan 2020 (RTA East Khasi Hills)",
+    "tariff": {
+      "PROGRESSIVE_BANDS": [
+        {
+          "upTo": 1,
+          "flatFare": 14
+        },
+        {
+          "upTo": 999999,
+          "perKm": 6
+        }
+      ],
+      "CEIL_TO_KM": true,
+      "WAIT_RATE_PER_MIN": 1.2,
+      "NIGHT_MULTIPLIER": 1,
+      "NIGHT_START": 0,
+      "NIGHT_END": 0,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "taxiTariffDate": "13 Jan 2020 (RTA East Khasi Hills)",
+    "taxiTariff": {
+      "PROGRESSIVE_BANDS": [
+        {
+          "upTo": 1,
+          "flatFare": 26
+        },
+        {
+          "upTo": 999999,
+          "perKm": 13
+        }
+      ],
+      "CEIL_TO_KM": true,
+      "WAIT_RATE_PER_MIN": 1.4,
+      "NIGHT_MULTIPLIER": 1,
+      "NIGHT_START": 0,
+      "NIGHT_END": 0,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "RTA East Khasi Hills, Shillong",
+        "phone": "",
+        "email": ""
+      }
+    ],
+    "helpline": "1971",
+    "helplineLabel": "CM Connect (Grievance Helpline)",
+    "helplineHint": "State hotline, 24x7"
+  },
+  "indore": {
+    "name": "Indore",
+    "slug": "indore",
+    "state": "Madhya Pradesh",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "MP",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 22.7196,
+      "lng": 75.8577
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 22.6,
+        "lng": 75.75
+      },
+      "ne": {
+        "lat": 22.85,
+        "lng": 75.95
+      }
+    },
+    "tariffDate": "21 May 2022 (RTA Indore)",
+    "tariff": {
+      "PROGRESSIVE_BANDS": [
+        {
+          "upTo": 1,
+          "flatFare": 20
+        },
+        {
+          "upTo": 999999,
+          "perKm": 17
+        }
+      ],
+      "WAIT_RATE_PER_MIN": 0,
+      "NIGHT_MULTIPLIER": 1.2,
+      "NIGHT_START": 23,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "MP Transport Dept Customer Care",
+        "phone": "0751-2971008",
+        "email": "care.mptransport@gmail.com"
+      }
+    ],
+    "helpline": "0751-2971008",
+    "helplineLabel": "MP Transport Customer Care",
+    "helplineHint": "State hotline"
+  },
+  "thiruvananthapuram": {
+    "name": "Thiruvananthapuram",
+    "slug": "thiruvananthapuram",
+    "state": "Kerala",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "KL",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 8.5241,
+      "lng": 76.9366
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 8.4,
+        "lng": 76.85
+      },
+      "ne": {
+        "lat": 8.65,
+        "lng": 77.05
+      }
+    },
+    "tariffDate": "May 2022",
+    "tariff": {
+      "MIN_FARE": 30,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 15,
+      "WAIT_RATE_PER_MIN": 1.5,
+      "NIGHT_MULTIPLIER": 1.5,
+      "NIGHT_START": 22,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "Kerala MVD Helpdesk",
+        "phone": "91 88 96 11 00",
+        "email": "complaints.mvd@kerala.gov.in"
+      }
+    ],
+    "helpline": "91 88 96 11 00"
+  },
+  "kozhikode": {
+    "name": "Kozhikode",
+    "slug": "kozhikode",
+    "state": "Kerala",
+    "country": "India",
+    "countryCode": "IN",
+    "stateCode": "KL",
+    "currencyCode": "INR",
+    "currencySymbol": "₹",
+    "mapCenter": {
+      "lat": 11.2588,
+      "lng": 75.7804
+    },
+    "acBounds": {
+      "sw": {
+        "lat": 11.15,
+        "lng": 75.7
+      },
+      "ne": {
+        "lat": 11.35,
+        "lng": 75.9
+      }
+    },
+    "tariffDate": "May 2022",
+    "tariff": {
+      "MIN_FARE": 30,
+      "MIN_KM": 1.5,
+      "RATE_PER_KM": 15,
+      "WAIT_RATE_PER_MIN": 1.5,
+      "NIGHT_MULTIPLIER": 1.5,
+      "NIGHT_START": 22,
+      "NIGHT_END": 5,
+      "LUGGAGE_PER_PIECE": 0,
+      "TOLERANCE": 5,
+      "STANDSTILL_FACTOR": 0.8
+    },
+    "rtoContact": [
+      {
+        "label": "Kerala MVD Helpdesk",
+        "phone": "91 88 96 11 00",
+        "email": "complaints.mvd@kerala.gov.in"
+      }
+    ],
+    "helpline": "91 88 96 11 00"
   }
 }

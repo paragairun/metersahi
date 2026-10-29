@@ -146,9 +146,13 @@ describe('fare and report inserts stay anonymous unless signed in', () => {
   });
 
   it('user_feedback is left on the anon path (no user_id column for it)', () => {
-    const idx = appJs.indexOf('rest/v1/user_feedback');
+    // The insert goes through supabaseInsert(table, payload, headers), so
+    // assert on the header set handed to that call rather than on a
+    // literal REST URL - app.js no longer builds one per table.
+    const idx = appJs.indexOf("supabaseInsert('user_feedback'");
+    expect(idx).toBeGreaterThan(-1);
     const block = appJs.slice(idx, idx + 400);
-    expect(block).toContain('SUPABASE_ANON_KEY');
+    expect(block).toContain('supabaseAnonHeaders()');
     expect(block).not.toContain('supabaseWriteHeaders()');
   });
 });
