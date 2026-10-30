@@ -27,6 +27,13 @@
   let session       = null;
   const listeners   = [];
 
+  // One column list for both report reads, so the complaint letter can
+  // never be handed a row missing a field the table shows.
+  const REPORT_COLUMNS =
+    'id, created_at, city_slug, vehicle_type, plate_full, plate_state, ' +
+    'plate_district, plate_series, plate_number, pickup_name, dropoff_name, ' +
+    'distance_km, calculated_fare, actual_fare_charged, is_night';
+
   /** Lazily create the Supabase client; repeated calls share one instance. */
   function getClient() {
     if (!clientPromise) {
@@ -171,10 +178,114 @@
       if (!session) return Promise.resolve([]);
       return getClient().then(function (c) {
         return c.from('vehicle_reports')
-          .select('id, created_at, city_slug, vehicle_type, plate_full, pickup_name, dropoff_name, distance_km, calculated_fare, actual_fare_charged')
+          .select(REPORT_COLUMNS)
           .order('created_at', { ascending: false })
           .limit(limit || 25);
       }).then(function (res) { return (res && res.data) || []; });
+    },
+
+    /**
+     * One report by id, for the complaint letter at /complaint/.
+     * RLS does the authorisation: the select can only ever match a row
+     * this user owns, so a guessed id returns null rather than someone
+     * else's complaint.
+     */
+    fetchReport: function (id) {
+      if (!session || !id) return Promise.resolve(null);
+      return getClient().then(function (c) {
+        return c.from('vehicle_reports')
+          .select(REPORT_COLUMNS)
+          .eq('id', id)
+          .maybeSingle();
+      }).then(function (res) { return (res && res.data) || null; });
+    },
+
+    /** Overcharge rollup + fare spend, for the ledger card. */
+    fetchLedger: function () {
+      if (!session) return Promise.resolve(null);
+      return getClient().then(function (c) {
+        return Promise.all([
+          c.from('my_overcharge_ledger').select('*').maybeSingle(),
+          c.from('my_fare_spend').select('*').maybeSingle(),
+        ]);
+      }).then(function (both) {
+        const led   = (both[0] && both[0].data) || {};
+        const spend = (both[1] && both[1].data) || {};
+        return Object.assign({}, led, spend);
+      });
+    },
+
+    /* ── Saved places ── */
+
+    /** Home, Work and named favourites. Home and Work sort first. */
+    fetchSavedPlaces: function () {
+      if (!session) return Promise.resolve([]);
+      return getClient().then(function (c) {
+        return c.from('saved_places')
+          .select('id, kind, label, address, place_id, lat, lng, city_slug, created_at')
+          .order('created_at', { ascending: true });
+      }).then(function (res) {
+        const rows = (res && res.data) || [];
+        const rank = { home: 0, work: 1, other: 2 };
+        return rows.slice().sort(function (a, b) {
+          const d = (rank[a.kind] ?? 9) - (rank[b.kind] ?? 9);
+          return d !== 0 ? d : String(a.label).localeCompare(String(b.label));
+        });
+      });
+    },
+
+    /**
+     * Create or replace a saved place.
+     *
+     * Home and Work are singular per user (enforced by partial unique
+     * indexes in saved-places-and-ledger.sql), so saving one replaces
+     * whatever was there: delete, then insert. Two round trips rather
+     * than an upsert because supabase-js cannot express ON CONFLICT
+     * against a *partial* index, and inferring the wrong constraint
+     * would fail at runtime instead of here.
+     *
+     * 'other' favourites are additive and keyed by label, so re-saving
+     * the same label replaces that one and leaves the rest alone.
+     */
+    saveSavedPlace: function (place) {
+      if (!session) return Promise.reject(new Error('Not signed in'));
+      const uid  = session.user.id;
+      const kind = (place && place.kind) || 'other';
+      const row  = {
+        user_id:   uid,
+        kind:      kind,
+        label:     String((place && place.label) || '').trim().slice(0, 40),
+        address:   String((place && place.address) || '').trim().slice(0, 300),
+        place_id:  (place && place.place_id) || null,
+        lat:       Number.isFinite(place && place.lat) ? place.lat : null,
+        lng:       Number.isFinite(place && place.lng) ? place.lng : null,
+        city_slug: (place && place.city_slug) || null,
+      };
+      if (!row.label)   return Promise.reject(new Error('A label is required.'));
+      if (!row.address) return Promise.reject(new Error('An address is required.'));
+
+      return getClient().then(function (c) {
+        let clear = c.from('saved_places').delete().eq('user_id', uid);
+        clear = (kind === 'other')
+          ? clear.eq('kind', 'other').eq('label', row.label)
+          : clear.eq('kind', kind);
+        return clear.then(function () {
+          return c.from('saved_places').insert(row).select().maybeSingle();
+        });
+      }).then(function (res) {
+        if (res && res.error) throw new Error(res.error.message);
+        return (res && res.data) || null;
+      });
+    },
+
+    deleteSavedPlace: function (id) {
+      if (!session || !id) return Promise.reject(new Error('Not signed in'));
+      return getClient().then(function (c) {
+        return c.from('saved_places').delete().eq('id', id);
+      }).then(function (res) {
+        if (res && res.error) throw new Error(res.error.message);
+        return true;
+      });
     },
 
     /**

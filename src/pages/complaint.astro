@@ -1,0 +1,162 @@
+---
+// MeterSahi? - complaint.astro
+// Turns a stored vehicle_reports row into a ready-to-send complaint:
+// a formal letter addressed to the city's transport authority, with the
+// plate, route, date and the fare gap already filled in.
+//
+// Entirely client-side, like /account/: the row is fetched with the
+// user's own session so RLS guarantees they can only ever open their
+// own complaint. Printing to PDF is the browser's own print dialog —
+// no PDF library, so this stays a static page.
+//
+// Deliberately noindex: it is per-user and per-report.
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Complaint letter — MeterSahi?</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#1a1a1a"/>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+
+  <header class="site-header no-print">
+    <div class="container">
+      <div class="header-inner">
+        <a href="/" class="brand">
+          <span class="brand-icon">🛺</span>
+          <div>
+            <span class="brand-name">MeterSahi?</span>
+            <span class="brand-sub">Taxi &amp; Auto Fare Checker</span>
+          </div>
+        </a>
+        <div class="header-right">
+          <a href="/account/" class="acc-back-link"><i class="ti ti-arrow-left"></i> Back to my account</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container acc-main">
+
+    <div id="cmp-loading" class="acc-state">
+      <div class="spinner-ring"></div>
+      <p>Loading your complaint…</p>
+    </div>
+
+    <section id="cmp-signed-out" class="acc-state" style="display:none">
+      <div class="acc-signin-card">
+        <div class="acc-signin-icon"><i class="ti ti-lock"></i></div>
+        <h1>Sign in to open this complaint</h1>
+        <p class="acc-sub">Complaint letters are built from the reports saved to your account.</p>
+        <a class="btn-calculate acc-submit" href="/account/">Go to sign in</a>
+      </div>
+    </section>
+
+    <section id="cmp-missing" class="acc-state" style="display:none">
+      <div class="acc-signin-card">
+        <div class="acc-signin-icon"><i class="ti ti-file-off"></i></div>
+        <h1>Complaint not found</h1>
+        <p class="acc-sub">This report either doesn't exist or isn't on your account.</p>
+        <a class="btn-calculate acc-submit" href="/account/">Back to my account</a>
+      </div>
+    </section>
+
+    <section id="cmp-main" style="display:none">
+
+      <!-- Your details: typed once, remembered on this device for next
+           time. Never sent to the server — they only go into the letter. -->
+      <div class="acc-panel no-print">
+        <div class="acc-panel-header">
+          <h2><i class="ti ti-user"></i> Your details</h2>
+          <span class="acc-panel-hint">Added to the letter. Kept on this device only.</span>
+        </div>
+        <div class="cmp-fields">
+          <div class="acc-field">
+            <label for="cmp-name">Your name</label>
+            <input id="cmp-name" type="text" autocomplete="name" placeholder="Full name"/>
+          </div>
+          <div class="acc-field">
+            <label for="cmp-phone">Phone</label>
+            <input id="cmp-phone" type="tel" autocomplete="tel" placeholder="10-digit mobile"/>
+          </div>
+          <div class="acc-field">
+            <label for="cmp-email">Email</label>
+            <input id="cmp-email" type="email" autocomplete="email" placeholder="you@example.com"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmp-actions no-print">
+        <button type="button" class="cmp-action cmp-action--primary" id="btn-print">
+          <i class="ti ti-printer"></i> Print / Save as PDF
+        </button>
+        <a class="cmp-action" id="btn-email" href="#"><i class="ti ti-mail"></i> Email this complaint</a>
+        <button type="button" class="cmp-action" id="btn-copy"><i class="ti ti-copy"></i> Copy text</button>
+        <span class="cmp-action-msg" id="cmp-action-msg"></span>
+      </div>
+
+      <!-- The letter itself. This is the only block that prints. -->
+      <article class="cmp-letter" id="cmp-letter">
+        <header class="cmp-letter-head">
+          <h1 class="cmp-letter-title">Complaint: overcharging / suspected meter tampering</h1>
+          <p class="cmp-letter-date" id="cmp-today"></p>
+        </header>
+
+        <p class="cmp-to"><strong>To,</strong><br/><span id="cmp-authority"></span></p>
+
+        <p class="cmp-salutation">Sir / Madam,</p>
+
+        <p class="cmp-body" id="cmp-intro"></p>
+
+        <table class="cmp-table">
+          <tbody>
+            <tr><th>Vehicle number</th><td id="cmp-plate"></td></tr>
+            <tr><th>Vehicle type</th><td id="cmp-vehicle"></td></tr>
+            <tr><th>City</th><td id="cmp-city"></td></tr>
+            <tr><th>Date of journey</th><td id="cmp-trip-date"></td></tr>
+            <tr><th>From</th><td id="cmp-from"></td></tr>
+            <tr><th>To</th><td id="cmp-to-place"></td></tr>
+            <tr><th>Distance travelled</th><td id="cmp-distance"></td></tr>
+            <tr><th>Correct fare as per tariff</th><td id="cmp-correct"></td></tr>
+            <tr><th>Amount charged by driver</th><td id="cmp-charged"></td></tr>
+            <tr class="cmp-row-total"><th>Excess charged</th><td id="cmp-excess"></td></tr>
+          </tbody>
+        </table>
+
+        <p class="cmp-body" id="cmp-ask"></p>
+
+        <p class="cmp-sign">
+          Yours faithfully,<br/>
+          <span class="cmp-sign-name" id="cmp-sign-name">—</span><br/>
+          <span class="cmp-sign-contact" id="cmp-sign-contact"></span>
+        </p>
+
+        <p class="cmp-footnote" id="cmp-footnote"></p>
+      </article>
+
+      <!-- Where to send it. Not part of the printed letter. -->
+      <div class="acc-panel no-print">
+        <div class="acc-panel-header">
+          <h2><i class="ti ti-send"></i> Where to send this</h2>
+          <span class="acc-panel-hint">Official contacts for this city</span>
+        </div>
+        <div id="cmp-contacts"><div class="acc-empty">Loading…</div></div>
+      </div>
+
+    </section>
+  </main>
+
+  <script is:inline src="/cities.js"></script>
+  <script is:inline src="/auth.js"></script>
+  <script is:inline src="/complaint.js"></script>
+</body>
+</html>

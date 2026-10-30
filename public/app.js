@@ -273,7 +273,11 @@ window.attemptAutoLocate = function () {
   const locateBtn = document.getElementById('locate-btn');
 
   if (!navigator.geolocation) {
-    return; // No geolocation support - silent fallback to manual entry.
+    // No geolocation support - fall back to a saved Home if there is
+    // one, otherwise to manual entry exactly as before.
+    geoAttemptFailed = true;
+    maybeApplyHomeFallback();
+    return;
   }
 
   if (statusEl) { statusEl.textContent = 'Detecting your location…'; statusEl.className = 'locate-status locate-status--loading'; }
@@ -291,6 +295,12 @@ window.attemptAutoLocate = function () {
       console.warn('Geolocation unavailable:', err.message);
       if (locateBtn) locateBtn.classList.remove('locating');
       if (statusEl) { statusEl.textContent = ''; statusEl.className = 'locate-status'; }
+      // A denied prompt used to leave the user with an empty box and
+      // nothing to show for it. Use their saved Home instead, if the
+      // places have loaded; if they haven't yet, loadSavedPlaces() will
+      // retry this the moment they do.
+      geoAttemptFailed = true;
+      maybeApplyHomeFallback();
     },
     { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
   );
@@ -315,6 +325,9 @@ function reverseGeocodeAndFillPickup(lat, lng) {
         // standing — so the route starts from the actual spot instead
         // of wherever that formatted address geocodes back to.
         resolvedPoints.pickup = { placeId: null, lat, lng, text: pickupInput.value };
+        // The best moment to offer "save this as Home" is right after a
+        // GPS fix named the place, so surface the Save chip now.
+        renderSavedPlaceRows();
       }
       if (statusEl) { statusEl.textContent = 'Using your current location'; statusEl.className = 'locate-status locate-status--success'; }
     } else {
@@ -445,6 +458,292 @@ function attachPlacePicker(input, fieldId, acOptions) {
   });
 
   return ac;
+}
+
+/* ════════════════════════════════════════════
+   SAVED PLACES  (signed-in only)
+
+   Home / Work / named favourites, stored per user
+   in saved_places. Two jobs here:
+
+     1. one-tap fill — a chip row under pickup and
+        under drop-off. Tapping a chip writes the
+        address AND the stored place id/coords into
+        resolvedPoints, so a saved place routes from
+        the exact point the user originally picked
+        rather than being re-geocoded every trip.
+
+     2. save — the place id and coordinates only
+        exist on this page, where Autocomplete just
+        handed them over. So saving happens here;
+        /account/ only lists and removes.
+
+   Everything degrades to nothing when logged out:
+   the rows stay display:none and the calculator is
+   byte-for-byte the flow it was before.
+   ════════════════════════════════════════════ */
+let savedPlaces = [];
+// Set when a geolocation attempt has already failed, so that saved
+// places arriving later (they load async) can still fill the pickup
+// that geolocation couldn't.
+let geoAttemptFailed = false;
+
+const PLACE_KIND_ICON = { home: 'ti-home', work: 'ti-briefcase', other: 'ti-star' };
+
+function isSignedIn() {
+  return !!(window.MSAuth && window.MSAuth.isSignedIn && window.MSAuth.isSignedIn());
+}
+
+/**
+ * Places worth offering on THIS city's page. A Home saved in Ahmedabad
+ * is not a usable pickup on the Mumbai page — it would route across the
+ * country — so anything stamped with a different city is left out.
+ * Rows saved before city_slug existed (null) are kept rather than
+ * silently vanishing.
+ */
+function placesForThisCity() {
+  return savedPlaces.filter(function (p) {
+    return !p.city_slug || p.city_slug === CITY_SLUG;
+  });
+}
+
+/** Write a saved place into a field, carrying its precision with it. */
+function fillFieldFromPlace(fieldId, place) {
+  const input = document.getElementById(fieldId);
+  if (!input || !place) return;
+  input.value = place.address;
+  resolvedPoints[fieldId] = {
+    placeId: place.place_id || null,
+    lat: Number.isFinite(place.lat) ? place.lat : undefined,
+    lng: Number.isFinite(place.lng) ? place.lng : undefined,
+    text: place.address,
+  };
+  if (fieldId === 'pickup') {
+    const statusEl = document.getElementById('locate-status');
+    if (statusEl) {
+      statusEl.textContent = 'Using your saved ' + place.label;
+      statusEl.className = 'locate-status locate-status--success';
+    }
+  }
+  // Setting .value in code fires no 'input' event, so the Save chip
+  // would otherwise stay hidden until the user typed something.
+  renderSavedPlaceRows();
+}
+
+function chipButton(label, iconClass, onClick, extraClass) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'sp-chip' + (extraClass ? ' ' + extraClass : '');
+  const i = document.createElement('i');
+  i.className = 'ti ' + iconClass;
+  b.appendChild(i);
+  // textContent, never innerHTML: labels and addresses are user input.
+  b.appendChild(document.createTextNode(' ' + label));
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+function renderSavedPlaceRows() {
+  ['pickup', 'dropoff'].forEach(function (fieldId) {
+    const row = document.getElementById('saved-places-' + fieldId);
+    if (!row) return;
+
+    if (!isSignedIn()) {
+      row.style.display = 'none';
+      row.textContent = '';
+      return;
+    }
+
+    row.textContent = '';
+    const mine = placesForThisCity();
+
+    mine.forEach(function (p) {
+      const chip = chipButton(
+        p.label,
+        PLACE_KIND_ICON[p.kind] || PLACE_KIND_ICON.other,
+        function () { fillFieldFromPlace(fieldId, p); },
+        'sp-chip--' + p.kind
+      );
+      chip.title = p.address;
+      row.appendChild(chip);
+    });
+
+    const input = document.getElementById(fieldId);
+    const hasText = !!(input && input.value.trim());
+    // Nothing saved and nothing typed yet: an empty "Save" chip on its
+    // own is just noise, so the row stays hidden until there is either
+    // something to use or something to save.
+    if (!mine.length && !hasText) {
+      row.style.display = 'none';
+      return;
+    }
+    if (hasText) {
+      row.appendChild(chipButton('Save', 'ti-bookmark-plus', function () {
+        openSavePlacePopover(fieldId);
+      }, 'sp-chip--save'));
+    }
+    row.style.display = 'flex';
+  });
+}
+
+/** Re-render the Save chip as a field gains or loses text. */
+function watchFieldsForSaveChip() {
+  ['pickup', 'dropoff'].forEach(function (fieldId) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    let last = input.value.trim() !== '';
+    input.addEventListener('input', function () {
+      const now = input.value.trim() !== '';
+      if (now !== last) { last = now; renderSavedPlaceRows(); }
+    });
+  });
+}
+
+/**
+ * The save popover: Home, Work, or a custom label. Deliberately not
+ * window.prompt() — it is blocked inside the Capacitor WebView and
+ * blocks every subsequent event when it does appear.
+ */
+window.openSavePlacePopover = function (fieldId) {
+  const pop = document.getElementById('save-place-popover');
+  const row = document.getElementById('saved-places-' + fieldId);
+  if (!pop || !row) return;
+
+  const input = document.getElementById(fieldId);
+  const address = input ? input.value.trim() : '';
+  if (!address) return;
+
+  pop.dataset.field = fieldId;
+  document.getElementById('sp-pop-address').textContent = address;
+  document.getElementById('sp-pop-label').value = '';
+  document.getElementById('sp-pop-msg').textContent = '';
+  // Move it under the row that asked for it, so it reads as attached to
+  // that field rather than floating over the form.
+  row.insertAdjacentElement('afterend', pop);
+  pop.style.display = 'block';
+};
+
+window.closeSavePlacePopover = function () {
+  const pop = document.getElementById('save-place-popover');
+  if (pop) pop.style.display = 'none';
+};
+
+/**
+ * Persist whatever is currently in the field as `kind`. The resolved
+ * point is read through resolvedPointFor(), so an address the user
+ * edited after picking it is saved as text only rather than with coords
+ * that no longer match what the box says.
+ */
+window.saveCurrentPlace = function (kind) {
+  const pop = document.getElementById('save-place-popover');
+  if (!pop) return;
+  const fieldId = pop.dataset.field || 'pickup';
+  const input   = document.getElementById(fieldId);
+  const msgEl   = document.getElementById('sp-pop-msg');
+  const address = input ? input.value.trim() : '';
+  if (!address) return;
+
+  let label;
+  if (kind === 'home')      label = 'Home';
+  else if (kind === 'work') label = 'Work';
+  else {
+    label = document.getElementById('sp-pop-label').value.trim();
+    if (!label) { msgEl.textContent = 'Give this place a name first.'; return; }
+  }
+
+  const resolved = resolvedPointFor(fieldId, address);
+  msgEl.textContent = 'Saving…';
+
+  window.MSAuth.saveSavedPlace({
+    kind:      kind,
+    label:     label,
+    address:   address,
+    place_id:  resolved ? resolved.placeId : null,
+    lat:       resolved ? resolved.lat : null,
+    lng:       resolved ? resolved.lng : null,
+    city_slug: CITY_SLUG,
+  }).then(function () {
+    return loadSavedPlaces();
+  }).then(function () {
+    window.closeSavePlacePopover();
+  }).catch(function (err) {
+    console.warn('Saving place failed:', err);
+    msgEl.textContent = err.message || "Couldn't save that. Try again.";
+  });
+};
+
+function loadSavedPlaces() {
+  if (!isSignedIn()) {
+    savedPlaces = [];
+    renderSavedPlaceRows();
+    return Promise.resolve([]);
+  }
+  return window.MSAuth.fetchSavedPlaces().then(function (rows) {
+    savedPlaces = rows || [];
+    renderSavedPlaceRows();
+    maybeApplyHomeFallback();
+    return savedPlaces;
+  }).catch(function (err) {
+    console.warn('Saved places unavailable:', err);
+    return [];
+  });
+}
+
+/**
+ * Geolocation gets denied often, and until now that left the pickup box
+ * empty with nothing to show for the prompt. A signed-in user with a
+ * saved Home gets it filled instead.
+ */
+function maybeApplyHomeFallback() {
+  if (!geoAttemptFailed) return;
+  const input = document.getElementById('pickup');
+  if (!input || input.value.trim()) return; // never overwrite typing
+  const home = placesForThisCity().filter(function (p) { return p.kind === 'home'; })[0];
+  if (!home) return;
+  fillFieldFromPlace('pickup', home);
+  renderSavedPlaceRows();
+}
+
+/* ════════════════════════════════════════════
+   RE-RUN A PAST TRIP
+   /account/ links back here as
+   /<city>/?from=…&to=…&v=auto|taxi&run=1
+   so a row in the trip history becomes one tap
+   instead of retyping both ends.
+   ════════════════════════════════════════════ */
+function applyTripFromQuery() {
+  let q;
+  try { q = new URLSearchParams(window.location.search); } catch (e) { return; }
+
+  const CAP = 200; // same ceiling the address inputs accept
+  const from = (q.get('from') || '').trim().slice(0, CAP);
+  const to   = (q.get('to')   || '').trim().slice(0, CAP);
+  const v    = q.get('v');
+  const run  = q.get('run') === '1';
+
+  if (v === 'taxi' && CITY.taxiTariff) window.setVehicleType('taxi');
+
+  const pickupEl  = document.getElementById('pickup');
+  const dropoffEl = document.getElementById('dropoff');
+
+  // Text only: fare_calculations stores the typed address, not the place
+  // id, so these go in as free text and routeWaypoint() geocodes them.
+  // resolvedPoints is cleared so a stale point can't be paired with it.
+  if (from && pickupEl)  { pickupEl.value  = from; resolvedPoints.pickup  = null; }
+  if (to   && dropoffEl) { dropoffEl.value = to;   resolvedPoints.dropoff = null; }
+
+  if (run && from && to) {
+    const statusEl = document.getElementById('locate-status');
+    if (statusEl) {
+      statusEl.textContent = 'Re-running your saved trip…';
+      statusEl.className = 'locate-status locate-status--loading';
+    }
+    // Deliberately after the current tick: setVehicleType() above calls
+    // hideResults(), and calculating in the same tick would race it.
+    setTimeout(function () { window.calculateFare(); }, 0);
+  }
+
+  return !!(from || to);
 }
 
 /* ════════════════════════════════════════════
@@ -1174,6 +1473,18 @@ document.addEventListener('DOMContentLoaded', () => {
   buildCityDropdown();
   autoSetRideTime();
   initFeedbackStars();
+  watchFieldsForSaveChip();
+
+  // A trip re-run arrives as query params and must win over the saved
+  // Home fallback, so it is applied before anything can fill pickup.
+  applyTripFromQuery();
+
+  // Saved places follow the session: they appear on sign-in and the
+  // chips disappear on sign-out, without a reload either way.
+  if (window.MSAuth) {
+    window.MSAuth.ready().then(loadSavedPlaces).catch(function () {});
+    window.MSAuth.onChange(function () { loadSavedPlaces(); });
+  }
   ['pickup','dropoff','actual-fare','wait-min','wait-sec'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('keydown', e => { if (e.key==='Enter'){e.preventDefault();calculateFare();} });

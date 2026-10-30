@@ -337,6 +337,7 @@ const faqJsonLd = {
             </button>
           </div>
           <span class="locate-status" id="locate-status"></span>
+          <div class="saved-places-row" id="saved-places-pickup" style="display:none"></div>
         </div>
         <div class="route-connector">
           <span class="connector-dot"></span>
@@ -346,7 +347,27 @@ const faqJsonLd = {
         <div class="field">
           <label for="dropoff"><i class="ti ti-flag"></i> Drop-off</label>
           <input id="dropoff" type="text" placeholder="Enter drop-off location" autocomplete="off"/>
+          <div class="saved-places-row" id="saved-places-dropoff" style="display:none"></div>
         </div>
+      </div>
+
+      <!-- Save-a-place popover. One instance, moved under whichever
+           field's Save chip opened it (see openSavePlacePopover). -->
+      <div class="sp-popover" id="save-place-popover" style="display:none">
+        <div class="sp-pop-head">
+          <span class="sp-pop-title"><i class="ti ti-bookmark"></i> Save this place</span>
+          <button type="button" class="sp-pop-close" onclick="closeSavePlacePopover()" aria-label="Close"><i class="ti ti-x"></i></button>
+        </div>
+        <p class="sp-pop-address" id="sp-pop-address"></p>
+        <div class="sp-pop-kinds">
+          <button type="button" class="sp-pop-kind" onclick="saveCurrentPlace('home')"><i class="ti ti-home"></i> Home</button>
+          <button type="button" class="sp-pop-kind" onclick="saveCurrentPlace('work')"><i class="ti ti-briefcase"></i> Work</button>
+        </div>
+        <div class="sp-pop-custom">
+          <input type="text" id="sp-pop-label" maxlength="40" placeholder="Or name it — Gym, Mum's place…" autocomplete="off"/>
+          <button type="button" class="sp-pop-save" onclick="saveCurrentPlace('other')">Save</button>
+        </div>
+        <p class="sp-pop-msg" id="sp-pop-msg"></p>
       </div>
 
       <div class="panel-divider"></div>

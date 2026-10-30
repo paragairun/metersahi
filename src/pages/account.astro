@@ -104,6 +104,26 @@
         <button type="button" class="acc-signout-btn" id="btn-signout"><i class="ti ti-logout"></i> Sign out</button>
       </div>
 
+      <!-- Overcharge ledger: the headline number. Populated from
+           my_overcharge_ledger + my_fare_spend. -->
+      <div class="acc-ledger">
+        <div class="acc-ledger-card acc-ledger-card--hero">
+          <span class="acc-ledger-label"><i class="ti ti-receipt-off"></i> Overcharged</span>
+          <span class="acc-ledger-value" id="ledger-overcharge">—</span>
+          <span class="acc-ledger-sub" id="ledger-overcharge-sub">across the vehicles you reported</span>
+        </div>
+        <div class="acc-ledger-card acc-ledger-card--sm">
+          <span class="acc-ledger-label"><i class="ti ti-arrow-up-right"></i> Worst single trip</span>
+          <span class="acc-ledger-value" id="ledger-worst">—</span>
+          <span class="acc-ledger-sub" id="ledger-avg">—</span>
+        </div>
+        <div class="acc-ledger-card acc-ledger-card--sm">
+          <span class="acc-ledger-label"><i class="ti ti-wallet"></i> Correct fares checked</span>
+          <span class="acc-ledger-value" id="ledger-spend">—</span>
+          <span class="acc-ledger-sub" id="ledger-distance">—</span>
+        </div>
+      </div>
+
       <div class="acc-tiles">
         <div class="acc-tile">
           <span class="acc-tile-icon"><i class="ti ti-route"></i></span>
@@ -129,8 +149,16 @@
 
       <div class="acc-panel">
         <div class="acc-panel-header">
+          <h2><i class="ti ti-bookmark"></i> Saved places</h2>
+          <span class="acc-panel-hint">Tap Save under pickup or drop-off on any city page to add one</span>
+        </div>
+        <div id="places-body"><div class="acc-empty">Loading…</div></div>
+      </div>
+
+      <div class="acc-panel">
+        <div class="acc-panel-header">
           <h2><i class="ti ti-history"></i> Trip history</h2>
-          <span class="acc-panel-hint">Your 25 most recent fare checks</span>
+          <span class="acc-panel-hint">Your 25 most recent fare checks — tap Re-run to check one again</span>
         </div>
         <div id="trips-body"><div class="acc-empty">Loading…</div></div>
       </div>
@@ -138,7 +166,7 @@
       <div class="acc-panel">
         <div class="acc-panel-header">
           <h2><i class="ti ti-flag"></i> Complaints raised</h2>
-          <span class="acc-panel-hint">Vehicles you've reported for meter mismatch</span>
+          <span class="acc-panel-hint">Vehicles you've reported — open a ready-to-send complaint letter for any of them</span>
         </div>
         <div id="reports-body"><div class="acc-empty">Loading…</div></div>
       </div>
@@ -165,6 +193,10 @@
     </section>
   </main>
 
+  <!-- cities.js supplies real city names and currency symbols; without
+       it the dashboard had to title-case the slug, which turned
+       "riodejaneiro" into "Riodejaneiro". -->
+  <script is:inline src="/cities.js"></script>
   <script is:inline src="/auth.js"></script>
   <script is:inline src="/account.js"></script>
 </body>

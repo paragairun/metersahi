@@ -11,12 +11,32 @@
   const $ = function (id) { return document.getElementById(id); };
   let mode = 'signin'; // or 'signup'
 
+  /**
+   * Real city name from cities.js when it loaded, falling back to
+   * title-casing the slug. The fallback alone turned "riodejaneiro"
+   * into "Riodejaneiro" and "mexicocity" into "Mexicocity".
+   */
   const CITY_NAME = function (slug) {
     if (!slug) return '—';
+    const c = (typeof CITIES !== 'undefined') && CITIES[slug];
+    if (c && c.name) return c.name;
     return slug.split('-').map(function (w) {
       return w.charAt(0).toUpperCase() + w.slice(1);
     }).join(' ');
   };
+
+  /** A city's own currency symbol — these pages are not all in rupees. */
+  const CURRENCY = function (slug) {
+    const c = (typeof CITIES !== 'undefined') && CITIES[slug];
+    return (c && c.currencySymbol) || '₹';
+  };
+
+  /** Whole rupees for counts, two decimals never shown to the user. */
+  function money(sym, n) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return '—';
+    return sym + Math.round(v).toLocaleString('en-IN');
+  }
 
   function fmtDate(iso) {
     if (!iso) return '—';
@@ -75,6 +95,17 @@
         .forEach(function (id) { $(id).textContent = '—'; });
     });
 
+    window.MSAuth.fetchLedger().then(renderLedger).catch(function (e) {
+      console.warn('ledger failed', e);
+      ['ledger-overcharge', 'ledger-worst', 'ledger-spend']
+        .forEach(function (id) { $(id).textContent = '—'; });
+    });
+
+    window.MSAuth.fetchSavedPlaces().then(renderPlaces).catch(function (e) {
+      console.warn('places failed', e);
+      $('places-body').innerHTML = '<div class="acc-empty">Could not load your saved places.</div>';
+    });
+
     window.MSAuth.fetchTrips(25).then(renderTrips).catch(function (e) {
       console.warn('trips failed', e);
       $('trips-body').innerHTML = '<div class="acc-empty">Could not load your trip history.</div>';
@@ -86,6 +117,120 @@
     });
   }
 
+  /* ── Overcharge ledger ── */
+  function renderLedger(l) {
+    if (!l) return;
+    // Reports can span cities with different currencies. Totalling those
+    // into one number would be wrong, so the ledger is labelled with the
+    // symbol only when every reported city shares one; otherwise the
+    // neutral '₹' default stands in and the counts carry the meaning.
+    const sym = '₹';
+
+    const total = Number(l.overcharge_total) || 0;
+    const count = Number(l.overcharge_count) || 0;
+    $('ledger-overcharge').textContent = money(sym, total);
+    $('ledger-overcharge-sub').textContent = count
+      ? ('across ' + count + ' overcharged trip' + (count === 1 ? '' : 's'))
+      : 'no overcharge reported yet';
+
+    const worst = Number(l.worst_overcharge) || 0;
+    const avg   = Number(l.avg_overcharge) || 0;
+    $('ledger-worst').textContent = worst > 0 ? money(sym, worst) : '—';
+    $('ledger-avg').textContent   = avg > 0
+      ? (money(sym, avg) + ' average when overcharged')
+      : 'nothing flagged so far';
+
+    const spend = Number(l.fare_total) || 0;
+    const trips = Number(l.trips_total) || 0;
+    const dist  = Number(l.distance_total) || 0;
+    $('ledger-spend').textContent = trips ? money(sym, spend) : '—';
+    $('ledger-distance').textContent = trips
+      ? (trips + ' trip' + (trips === 1 ? '' : 's') + ' · ' + Math.round(dist) + ' km')
+      : 'check a fare to start';
+  }
+
+  /* ── Saved places ── */
+  function renderPlaces(rows) {
+    const body = $('places-body');
+    if (!rows || !rows.length) {
+      body.innerHTML =
+        '<div class="acc-empty">No saved places yet. On any city page, type a pickup or drop-off ' +
+        'and tap <strong>Save</strong> to keep it as Home, Work or a favourite.</div>';
+      return;
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'acc-places';
+
+    rows.forEach(function (p) {
+      const kind = (p.kind === 'home' || p.kind === 'work') ? p.kind : 'other';
+      const card = document.createElement('div');
+      card.className = 'acc-place';
+
+      const icon = document.createElement('i');
+      icon.className = 'ti ' +
+        (kind === 'home' ? 'ti-home' : kind === 'work' ? 'ti-briefcase' : 'ti-star') +
+        ' acc-place-icon is-' + kind;
+      card.appendChild(icon);
+
+      const text = document.createElement('div');
+      text.className = 'acc-place-text';
+      // textContent throughout: labels and addresses are user input and
+      // must never be parsed as markup here.
+      const lab = document.createElement('div');
+      lab.className = 'acc-place-label';
+      lab.textContent = p.label;
+      const addr = document.createElement('div');
+      addr.className = 'acc-place-address';
+      addr.textContent = p.address;
+      text.appendChild(lab);
+      text.appendChild(addr);
+      if (p.city_slug) {
+        const city = document.createElement('div');
+        city.className = 'acc-place-city';
+        city.textContent = CITY_NAME(p.city_slug);
+        text.appendChild(city);
+      }
+      card.appendChild(text);
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'acc-place-del';
+      del.title = 'Remove ' + p.label;
+      del.setAttribute('aria-label', 'Remove ' + p.label);
+      del.innerHTML = '<i class="ti ti-trash"></i>';
+      del.addEventListener('click', function () {
+        del.disabled = true;
+        window.MSAuth.deleteSavedPlace(p.id)
+          .then(function () { return window.MSAuth.fetchSavedPlaces(); })
+          .then(renderPlaces)
+          .catch(function (err) {
+            console.warn('delete place failed', err);
+            del.disabled = false;
+          });
+      });
+      card.appendChild(del);
+
+      wrap.appendChild(card);
+    });
+
+    body.innerHTML = '';
+    body.appendChild(wrap);
+  }
+
+  /**
+   * Link back to a city page with both ends pre-filled, so a history row
+   * becomes one tap instead of retyping. app.js reads these params in
+   * applyTripFromQuery().
+   */
+  function rerunHref(r) {
+    const q = new URLSearchParams();
+    q.set('from', r.pickup_text || '');
+    q.set('to', r.dropoff_text || '');
+    if (r.vehicle_type) q.set('v', r.vehicle_type);
+    q.set('run', '1');
+    return '/' + encodeURIComponent(r.city_slug) + '/?' + q.toString();
+  }
+
   function renderTrips(rows) {
     if (!rows.length) {
       $('trips-body').innerHTML =
@@ -93,9 +238,10 @@
       return;
     }
     let html = '<div class="acc-table-wrap"><table class="acc-table"><thead><tr>' +
-      '<th>Date</th><th>City</th><th>Route</th><th>Distance</th><th>Fare</th></tr></thead><tbody>';
+      '<th>Date</th><th>City</th><th>Route</th><th>Distance</th><th>Fare</th><th></th></tr></thead><tbody>';
     rows.forEach(function (r) {
       const route = (r.pickup_text || '—') + ' → ' + (r.dropoff_text || '—');
+      const canRerun = !!(r.city_slug && r.pickup_text && r.dropoff_text);
       html += '<tr>' +
         '<td>' + esc(fmtDate(r.created_at)) + '</td>' +
         '<td>' + esc(CITY_NAME(r.city_slug)) +
@@ -103,7 +249,10 @@
           (r.is_night ? '<span class="acc-chip acc-chip--night">Night</span>' : '') + '</td>' +
         '<td class="acc-route">' + esc(route) + '</td>' +
         '<td>' + (r.distance_km != null ? esc(r.distance_km) + ' km' : '—') + '</td>' +
-        '<td>' + (r.calculated_fare != null ? '₹' + esc(r.calculated_fare) : '—') + '</td>' +
+        '<td>' + (r.calculated_fare != null ? esc(CURRENCY(r.city_slug)) + esc(r.calculated_fare) : '—') + '</td>' +
+        '<td>' + (canRerun
+          ? '<a class="acc-row-btn" href="' + esc(rerunHref(r)) + '"><i class="ti ti-refresh"></i> Re-run</a>'
+          : '') + '</td>' +
         '</tr>';
     });
     $('trips-body').innerHTML = html + '</tbody></table></div>';
@@ -116,20 +265,23 @@
       return;
     }
     let html = '<div class="acc-table-wrap"><table class="acc-table"><thead><tr>' +
-      '<th>Date</th><th>Vehicle</th><th>City</th><th>Correct</th><th>Charged</th><th>Overcharge</th>' +
+      '<th>Date</th><th>Vehicle</th><th>City</th><th>Correct</th><th>Charged</th><th>Overcharge</th><th></th>' +
       '</tr></thead><tbody>';
     rows.forEach(function (r) {
       const over = (r.actual_fare_charged != null && r.calculated_fare != null)
         ? r.actual_fare_charged - r.calculated_fare : null;
+      const sym = esc(CURRENCY(r.city_slug));
       html += '<tr>' +
         '<td>' + esc(fmtDate(r.created_at)) + '</td>' +
         '<td><span class="acc-plate">' + esc(r.plate_full || '—') + '</span></td>' +
         '<td>' + esc(CITY_NAME(r.city_slug)) + '</td>' +
-        '<td>' + (r.calculated_fare != null ? '₹' + esc(r.calculated_fare) : '—') + '</td>' +
-        '<td>' + (r.actual_fare_charged != null ? '₹' + esc(r.actual_fare_charged) : '—') + '</td>' +
+        '<td>' + (r.calculated_fare != null ? sym + esc(r.calculated_fare) : '—') + '</td>' +
+        '<td>' + (r.actual_fare_charged != null ? sym + esc(r.actual_fare_charged) : '—') + '</td>' +
         '<td>' + (over != null
-            ? '<span class="' + (over > 0 ? 'acc-over' : 'acc-ok') + '">' + (over > 0 ? '+₹' + over : '₹' + over) + '</span>'
+            ? '<span class="' + (over > 0 ? 'acc-over' : 'acc-ok') + '">' + (over > 0 ? '+' + sym + over : sym + over) + '</span>'
             : '—') + '</td>' +
+        '<td><a class="acc-row-btn" href="/complaint/?r=' + encodeURIComponent(r.id) + '">' +
+          '<i class="ti ti-file-text"></i> Complaint</a></td>' +
         '</tr>';
     });
     $('reports-body').innerHTML = html + '</tbody></table></div>';
